@@ -1,6 +1,6 @@
 [**🇨🇳 中文**](README_zh-CN.md) |[**🇬🇧 English**](README.md)
 
-# 📄 DocBridge (Beta)
+# 📄 ContextBridge (Beta)
 
 > **The missing Office document bridge for your local AI Agents.**  
 > A seamless bridge that breaks the Word/Excel memory barrier for your local AI Agents (like OpenClaw, Claude Code, and Cursor).
@@ -13,7 +13,7 @@
 
 [QMD](https://github.com/tobi/qmd) is currently one of the most powerful, fully local, and low-RAM AI knowledge retrieval engines. However, by design, it is a "text-purist" tool and cannot directly read complex office formats like `.docx` and `.xlsx`.
 
-**DocBridge** is the ultimate sidecar tool built to solve this. Through fully automated background monitoring, the moment you drop a Word or Excel file into a folder, it converts it into high-fidelity Markdown and automatically triggers QMD to update its vector index. 
+**ContextBridge** is the ultimate sidecar tool built to solve this. Through fully automated background monitoring, the moment you drop a Word or Excel file into a folder, it converts it into high-fidelity Markdown and automatically triggers QMD to update its vector index. 
 
 **Drop your Office files in, and your local AI Agent can instantly "read" and "remember" them. 100% local, zero cloud uploads, and absolute privacy.**
 
@@ -33,7 +33,7 @@
 
 ```mermaid
 graph LR
-    A[Drop Word/Excel] -->|Background Watch| B(DocBridge)
+    A[Drop Word/Excel] -->|Background Watch| B(ContextBridge)
     B -->|MarkItDown Engine| C[High-Fidelity Markdown]
     C -->|Write to Watch Dir| D(QMD Knowledge Base)
     B -->|Auto Debounce Trigger| E[qmd embed]
@@ -47,11 +47,11 @@ graph LR
 ### 1. Prerequisites
 Ensure you have **Python 3.9+** installed, and [QMD](https://github.com/tobi/qmd) is globally installed and properly configured on your machine.
 
-### 2. Install DocBridge
+### 2. Install ContextBridge
 Clone this repository and install the required dependencies:
 ```bash
-git clone https://github.com/yourusername/DocBridge.git
-cd DocBridge
+git clone https://github.com/yourusername/ContextBridge.git
+cd ContextBridge
 pip install -r requirements.txt
 ```
 *(Note: `requirements.txt` mainly contains `markitdown` and `watchdog`)*
@@ -90,7 +90,7 @@ python main.py
 
 ## 🗺️ Roadmap
 
-We envision DocBridge not just as a geeky script, but evolving into a comprehensive local data bridge for all knowledge workers.
+We envision ContextBridge not just as a geeky script, but evolving into a comprehensive local data bridge for all knowledge workers.
 
 ### Phase 1: Core Engine (Current)
 - [x] Auto-watch & convert Word (`.docx`) and Excel (`.xlsx`).
