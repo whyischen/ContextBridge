@@ -33,18 +33,7 @@
 
 ContextBridge 将现代 RAG (检索增强生成) 管道的复杂性彻底黑盒化，封装成了一个单节点：
 
-```mermaid
-graph LR
-    subgraph ContextBridge["ContextBridge (一站式运行时)"]
-        direction TB
-        A[底层文件监听] -->|自动触发| B(MarkItDown 解析引擎)
-        B -->|生成纯净文本| C[(内置 QMD 检索引擎)]
-        C -->|自动构建索引| D[本地向量库]
-        D -->|对外暴露| E[MCP / REST API 服务]
-    end
-    User[拖入 Word/Excel] -->|拖拽| A
-    E <-->|极速查询与召回| Agent((AI Agent / IDE))
-```
+![System Architecture Diagram](https://github.com/whyischen/ContextBridge/blob/main/assets/diagram.png)
 
 ---
 

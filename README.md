@@ -33,18 +33,7 @@ We wrap Microsoft's high-fidelity `MarkItDown` parser and embed the blazing-fast
 
 ContextBridge abstracts away the complexity of modern RAG (Retrieval-Augmented Generation) pipelines into a single node:
 
-```mermaid
-graph LR
-    subgraph ContextBridge["ContextBridge (All-in-One Runtime)"]
-        direction TB
-        A[File Watcher] -->|Auto-Parse| B(MarkItDown Engine)
-        B -->|Clean Text| C[(Embedded QMD Engine)]
-        C -->|Auto-Index| D[Local Vector Store]
-        D -->|Serve| E[MCP / REST API]
-    end
-    User[Drop Word/Excel] -->|Drag & Drop| A
-    E <-->|Query & Retrieve| Agent((AI Agent / IDE))
-```
+![System Architecture Diagram](https://github.com/whyischen/ContextBridge/blob/main/assets/diagram.png)
 
 ---
 
