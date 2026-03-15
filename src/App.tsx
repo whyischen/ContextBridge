@@ -64,7 +64,13 @@ const DocsViewer = React.memo(({ lang, activeDoc, onClose }: { lang: 'en' | 'zh'
 });
 
 export default function App() {
-  const [lang, setLang] = useState<'en' | 'zh'>('zh');
+  const getInitialLang = (): 'en' | 'zh' => {
+    const browserLang = navigator.language.toLowerCase();
+    if (browserLang.startsWith('zh')) return 'zh';
+    return 'en';
+  };
+
+  const [lang, setLang] = useState<'en' | 'zh'>(getInitialLang());
   const [copied, setCopied] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [activeDoc, setActiveDoc] = useState<'guide' | 'openclaw'>('guide');
