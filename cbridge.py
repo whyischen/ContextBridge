@@ -18,7 +18,7 @@ def cli():
 @cli.command()
 def init():
     """Initialize ContextBridge configuration interactively."""
-    lang = click.prompt(i18n.get("choose_lang"), type=click.Choice(['en', 'zh']), default='zh')
+    lang = click.prompt(i18n.get("choose_lang"), type=click.Choice(['en', 'zh']), default='en')
     i18n.set_lang(lang)
     if lang == 'en':
         i18n.print("lang_set")  # this is English version

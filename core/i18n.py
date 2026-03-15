@@ -6,7 +6,7 @@ console = Console()
 
 class I18nManager:
     def __init__(self):
-        self.lang = CONFIG.get("lang", "zh")  # default to zh maybe or en, let's say zh for user ? No, let's default to en but user can change it. Actually, since user requested Chinese/English switch, let's default to "zh" if we detect Chinese or keep "en". Wait, "zh" makes more sense to the user who asked in Chinese. Let's make "zh" default.
+        self.lang = CONFIG.get("lang", "en")
         
         self.texts = {
             "en": {

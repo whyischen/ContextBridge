@@ -20,7 +20,7 @@ export default function App() {
   const content = {
     en: {
       title: "ContextBridge",
-      badge: "v0.1.1",
+      badgeText: "Now live on PyPI",
       heroTitle: "Give ",
       heroHighlight: "AI Agents",
       heroSuffix: " Instant Access to Your Local Documents",
@@ -64,12 +64,12 @@ export default function App() {
         { comment: "# 3. Add folders to monitor", cmd: "cbridge watch add ~/Documents/MyProjects" },
         { comment: "# 4. Build initial index with progress bar", cmd: "cbridge index" },
         { comment: "# 5. Start the real-time watcher & MCP Server", cmd: "cbridge start" },
-        { comment: "# 6. Test the Magic", cmd: 'cbridge search "Summarize the Q3 revenue"' }
+        { comment: "# 6. Test with the demo document", cmd: 'cbridge search "ContextBridge"' }
       ]
     },
     zh: {
       title: "ContextBridge",
-      badge: "v0.1.1",
+      badgeText: "已在 PyPI 发布",
       heroTitle: "让 ",
       heroHighlight: "AI 智能体",
       heroSuffix: <> 瞬间读懂你的<span className="whitespace-nowrap">本地文档</span></>,
@@ -113,7 +113,7 @@ export default function App() {
         { comment: "# 3. 添加监控目录", cmd: "cbridge watch add ~/Documents/MyProjects" },
         { comment: "# 4. 构建初始索引（带进度条）", cmd: "cbridge index" },
         { comment: "# 5. 启动实时监控与 MCP 服务", cmd: "cbridge start" },
-        { comment: "# 6. 见证奇迹的时刻", cmd: 'cbridge search "Q3的营收是多少？"' }
+        { comment: "# 6. 使用内置 Demo 文档进行测试", cmd: 'cbridge search "ContextBridge"' }
       ]
     }
   };
@@ -129,7 +129,7 @@ export default function App() {
             <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center">
               <Zap size={18} className="text-white" />
             </div>
-            cbridge-agent
+            ContextBridge
           </div>
           <div className="flex items-center gap-6">
             <button 
@@ -139,6 +139,17 @@ export default function App() {
               <Languages size={18} />
               {lang === 'en' ? '中文' : 'English'}
             </button>
+            <a 
+              href={lang === 'en' 
+                ? "https://github.com/whyischen/ContextBridge/blob/main/docs/usage_en.md" 
+                : "https://github.com/whyischen/ContextBridge/blob/main/docs/usage_zh.md"} 
+              target="_blank" 
+              rel="noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium"
+            >
+              <FileText size={18} />
+              {lang === 'en' ? 'Docs' : '文档'}
+            </a>
             <a href="https://github.com/whyischen/ContextBridge" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
               <Github size={18} />
               GitHub
@@ -164,7 +175,7 @@ export default function App() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
               </span>
-              {t.badge} is now live on PyPI
+              {t.badgeText}
             </motion.div>
 
             <motion.h1 

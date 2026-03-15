@@ -62,15 +62,15 @@ def init_workspace():
     demo_doc = RAW_DOCS_DIR / "Welcome_to_ContextBridge.md"
     if not demo_doc.exists():
         demo_content = (
-            "# 欢迎使用 ContextBridge (Welcome to ContextBridge!)\n\n"
-            "## 介绍 (Introduction)\n"
-            "ContextBridge 是一款专为 AI 智能体打造的一站式本地记忆桥梁 (The All-in-One Local Memory Bridge for AI Agents)。\n"
-            "它能够让您的本地 AI 智能体瞬间读取 Office 文档 (Word、Excel、PDF、PowerPoint 等)，并自动转化为高保真的 Markdown 内容。\n\n"
-            "## 核心特性 (Key Features)\n"
-            "- **实时目录监控 (Dynamic Monitoring)**: 自动感知文件新增、修改与删除，保持上下文永远最新。\n"
-            "- **开箱即用 (Batteries Included)**: 内嵌 ChromaDB 检索引擎，零额外配置，本地向量搜索即刻生效。\n"
-            "- **多语言界面 (i18n Support)**: 支持中英文命令行无缝切换。\n\n"
-            "您可以尝试随时运行搜索指令，例如:\n"
+            "# Welcome to ContextBridge!\n\n"
+            "## Introduction\n"
+            "ContextBridge is a lightweight Knowledge Base plugin for AI Agents.\n"
+            "It gives your local AI assistants instant access to read and understand your local Office documents (Word, Excel, PDF, etc.) directly into high-fidelity Markdown context.\n\n"
+            "## Key Features\n"
+            "- **Smart Folder Watcher**: Instantly detects file creations, modifications, and deletions to keep the context updated.\n"
+            "- **Batteries Included**: Comes with an embedded search runtime, no need to manually install external vector databases.\n"
+            "- **i18n Support**: Switch between English and Chinese command line seamlessly.\n\n"
+            "You can try searching this right now by running:\n"
             "> cbridge search ContextBridge\n"
         )
         with open(demo_doc, "w", encoding="utf-8") as f:
