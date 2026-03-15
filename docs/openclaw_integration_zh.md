@@ -2,89 +2,97 @@
 
 ContextBridge 可以无缝集成到 OpenClaw 中作为 Skill，让你的 AI 智能体直接访问和理解本地文档。
 
-## 什么是 ContextBridge Skill？
+## 什么是 Local ContextBridge Skill？
 
-ContextBridge Skill 是一个强大的 OpenClaw 扩展，提供：
+Local ContextBridge Skill 是一个强大的 OpenClaw 扩展，提供：
 
 - **实时文档访问** - 即时搜索和检索本地 Word、Excel、PDF 和 Markdown 文件
 - **向量搜索** - 跨文档集合的智能语义搜索
 - **自动索引** - 自动解析和索引新增或修改的文档
 - **零上传** - 所有文档保留在本地，确保隐私和安全
+- **智能环境检测** - 自动检测系统环境并选择最佳配置
+- **命名空间隔离** - 支持与其他应用共享 QMD 和 OpenViking 服务
 
 ## 前置要求
 
-安装 ContextBridge Skill 前，请确保你已有：
+在 OpenClaw 中启用 Local ContextBridge Skill 前，请确保你已有：
 
 - 已安装并配置 OpenClaw
 - Python 3.8 或更高版本
-- 已全局安装 ContextBridge：`pip install cbridge-agent`
 
-## 安装步骤
+## 安装和配置
 
-### 第一步：安装 ContextBridge
+### 在 OpenClaw 中启用 Skill
 
-```bash
-pip install cbridge-agent
-```
-
-### 第二步：初始化 ContextBridge
-
-运行交互式设置：
-
-```bash
-cbridge init
-```
-
-这将引导你完成：
-- 选择内嵌模式或外部实例
-- 配置文档存储位置
-- 设置向量数据库
-
-### 第三步：添加监控目录
-
-添加包含文档的目录：
-
-```bash
-cbridge watch add ~/Documents/MyProjects
-cbridge watch add ~/Downloads/Research
-```
-
-你可以根据需要添加多个文件夹。
-
-### 第四步：构建初始索引
-
-为你的文档创建初始向量索引：
-
-```bash
-cbridge index
-```
-
-这将显示进度条，处理你的文档。
-
-### 第五步：启动 ContextBridge
-
-启动 ContextBridge MCP 服务器：
-
-```bash
-cbridge start
-```
-
-服务器将在后台运行并监控你的文件夹变化。
-
-### 第六步：在 OpenClaw 中安装 ContextBridge Skill
-
-在 OpenClaw 中：
-
-1. 打开 Skill 市场
-2. 搜索 "ContextBridge"
+1. 打开 OpenClaw Skill 市场
+2. 搜索 "local-context-bridge"
 3. 点击 "安装"
-4. 按照配置向导操作
+4. Skill 将自动启动安装引导
 
-Skill 将自动连接到你运行的 ContextBridge 实例。
+### 自动安装引导
+
+Skill 会自动为你完成以下操作：
+
+✅ **环境检测**
+- 检测你的系统环境
+- 自动选择最佳配置模式
+
+✅ **ContextBridge 安装**
+- 自动安装 cbridge-agent（如需要）
+- 初始化配置
+
+✅ **模式选择**
+- **内嵌模式**（默认）：使用内置 ChromaDB
+- **外部模式**（自动检测）：连接到现有 QMD 和 OpenViking 服务
+
+✅ **工作区初始化**
+- 创建必要的目录
+- 初始化向量数据库
+
+安装完成后，Skill 即可使用。
 
 ## 在 OpenClaw 中使用 ContextBridge
 
-安装后，你可以在 OpenClaw 工作流中使用 ContextBridge：
+安装后，你可以在 OpenClaw 工作流中使用 Local ContextBridge Skill：
+
+### 支持的能力
+
+Skill 提供以下 7 个能力：
+
+1. **search_documents** - 搜索本地文档
+   ```
+   "在我的文档中搜索关于项目架构的信息"
+   ```
+
+2. **setup_environment** - 重新配置环境
+   ```
+   "重新初始化 ContextBridge 环境"
+   ```
+
+3. **detect_environment** - 检测当前环境
+   ```
+   "检测我的系统环境"
+   ```
+
+4. **add_watch_directory** - 添加监控目录
+   ```
+   "添加 ~/Documents 到监控目录"
+   ```
+
+5. **remove_watch_directory** - 移除监控目录
+   ```
+   "从监控目录中移除 ~/Downloads"
+   ```
+
+6. **get_watch_directories** - 获取监控目录列表
+   ```
+   "列出所有监控的目录"
+   ```
+
+7. **get_status** - 获取当前状态
+   ```
+   "获取 ContextBridge 的当前状态"
+   ```
 
 ### 搜索文档
 
@@ -115,6 +123,16 @@ Skill 将自动连接到你运行的 ContextBridge 实例。
 "比较 doc1.pdf 和 doc2.docx 中的需求"
 ```
 
+### 管理监控目录
+
+动态添加或移除监控目录：
+
+```
+"添加 ~/Projects 到监控目录"
+"从监控目录中移除 ~/Downloads"
+"列出所有监控的目录"
+```
+
 ## 配置
 
 ### 支持的文件格式
@@ -124,16 +142,19 @@ Skill 将自动连接到你运行的 ContextBridge 实例。
 
 ### 文件夹监控
 
-添加或移除监控文件夹：
+通过 Skill 能力管理监控文件夹：
+
+```
+"添加 /path/to/folder 到监控目录"
+"从监控目录中移除 /path/to/folder"
+"列出所有监控的目录"
+```
+
+或使用命令行：
 
 ```bash
-# 添加文件夹
 cbridge watch add /path/to/folder
-
-# 移除文件夹
 cbridge watch remove /path/to/folder
-
-# 列出监控的文件夹
 cbridge watch list
 ```
 
@@ -145,25 +166,41 @@ cbridge watch list
 - **相似度阈值**：最小相关性分数（默认：0.5）
 - **搜索超时**：最大搜索时长（秒）（默认：30）
 
+### 部署模式
+
+Skill 自动检测并选择最佳部署模式：
+
+**内嵌模式**（默认）
+- 使用内置 ChromaDB
+- 无需外部依赖
+- 适合独立使用
+
+**外部模式**（自动检测）
+- 连接到现有 QMD 和 OpenViking 服务
+- 使用命名空间隔离：
+  - QMD Collection: `contextbridge_docs`
+  - OpenViking Mount: `viking://contextbridge/`
+- 支持与其他应用共享服务
+
 ## 故障排查
 
 ### Skill 无法连接
 
-**问题**：OpenClaw 无法连接到 ContextBridge
+**问题**：OpenClaw 无法连接到 Local ContextBridge Skill
 
 **解决方案**：
-1. 验证 ContextBridge 正在运行：`cbridge status`
-2. 检查 MCP 服务器是否在正确的端口上监听
-3. 重启 ContextBridge 和 OpenClaw
+1. 检查 Skill 是否已正确安装
+2. 查看 Skill 的安装日志
+3. 重新启用 Skill
 
 ### 文档未被索引
 
 **问题**：你的文档未出现在搜索结果中
 
 **解决方案**：
-1. 验证文件夹正在被监控：`cbridge watch list`
+1. 使用 `get_watch_directories` 能力验证文件夹是否被监控
 2. 检查文件格式是否支持
-3. 重建索引：`cbridge index --force`
+3. 使用命令行重建索引：`cbridge index --force`
 
 ### 搜索性能缓慢
 
@@ -182,6 +219,16 @@ cbridge watch list
 1. 减少索引的文档数量
 2. 清理旧索引：`cbridge clean`
 3. 监控文件夹大小并归档旧文档
+
+### 需要重新配置
+
+**问题**：需要改变部署模式或重新初始化
+
+**解决方案**：
+使用 `setup_environment` 能力重新配置：
+```
+"重新初始化 ContextBridge 环境"
+```
 
 ## 高级配置
 

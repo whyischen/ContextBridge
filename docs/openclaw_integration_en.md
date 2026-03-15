@@ -2,89 +2,97 @@
 
 ContextBridge can be seamlessly integrated into OpenClaw as a Skill, enabling your AI agents to directly access and understand your local documents.
 
-## What is ContextBridge Skill?
+## What is Local ContextBridge Skill?
 
-ContextBridge Skill is a powerful OpenClaw extension that provides:
+Local ContextBridge Skill is a powerful OpenClaw extension that provides:
 
 - **Real-time Document Access** - Search and retrieve your local Word, Excel, PDF, and Markdown files instantly
 - **Vector Search** - Intelligent semantic search across your document collection
 - **Auto-Indexing** - Automatic parsing and indexing of new or modified documents
 - **Zero Upload** - All documents stay on your machine, ensuring privacy and security
+- **Smart Environment Detection** - Automatically detects system environment and selects best configuration
+- **Namespace Isolation** - Supports sharing QMD and OpenViking services with other applications
 
 ## Prerequisites
 
-Before installing the ContextBridge Skill, ensure you have:
+Before enabling Local ContextBridge Skill in OpenClaw, ensure you have:
 
 - OpenClaw installed and configured
 - Python 3.8 or higher
-- ContextBridge installed globally: `pip install cbridge-agent`
 
-## Installation Steps
+## Installation and Configuration
 
-### Step 1: Install ContextBridge
+### Enable Skill in OpenClaw
 
-```bash
-pip install cbridge-agent
-```
-
-### Step 2: Initialize ContextBridge
-
-Run the interactive setup:
-
-```bash
-cbridge init
-```
-
-This will guide you through:
-- Choosing between embedded mode or external instance
-- Configuring your document storage location
-- Setting up the vector database
-
-### Step 3: Add Folders to Monitor
-
-Add the directories containing your documents:
-
-```bash
-cbridge watch add ~/Documents/MyProjects
-cbridge watch add ~/Downloads/Research
-```
-
-You can add multiple folders as needed.
-
-### Step 4: Build Initial Index
-
-Create the initial vector index for your documents:
-
-```bash
-cbridge index
-```
-
-This will display a progress bar as it processes your documents.
-
-### Step 5: Start ContextBridge
-
-Launch the ContextBridge MCP server:
-
-```bash
-cbridge start
-```
-
-The server will run in the background and monitor your folders for changes.
-
-### Step 6: Install ContextBridge Skill in OpenClaw
-
-In OpenClaw:
-
-1. Open the Skill marketplace
-2. Search for "ContextBridge"
+1. Open OpenClaw Skill marketplace
+2. Search for "local-context-bridge"
 3. Click "Install"
-4. Follow the configuration wizard
+4. Skill will automatically start the installation guide
 
-The Skill will automatically connect to your running ContextBridge instance.
+### Automatic Installation Guide
+
+The Skill will automatically complete the following for you:
+
+✅ **Environment Detection**
+- Detects your system environment
+- Automatically selects the best configuration mode
+
+✅ **ContextBridge Installation**
+- Automatically installs cbridge-agent (if needed)
+- Initializes configuration
+
+✅ **Mode Selection**
+- **Embedded Mode** (default): Uses built-in ChromaDB
+- **External Mode** (auto-detected): Connects to existing QMD and OpenViking services
+
+✅ **Workspace Initialization**
+- Creates necessary directories
+- Initializes vector database
+
+After installation, the Skill is ready to use.
 
 ## Using ContextBridge in OpenClaw
 
-Once installed, you can use ContextBridge in your OpenClaw workflows:
+Once installed, you can use Local ContextBridge Skill in your OpenClaw workflows:
+
+### Supported Capabilities
+
+The Skill provides the following 7 capabilities:
+
+1. **search_documents** - Search local documents
+   ```
+   "Search my documents for information about project architecture"
+   ```
+
+2. **setup_environment** - Reconfigure environment
+   ```
+   "Reinitialize ContextBridge environment"
+   ```
+
+3. **detect_environment** - Detect current environment
+   ```
+   "Detect my system environment"
+   ```
+
+4. **add_watch_directory** - Add directory to monitor
+   ```
+   "Add ~/Documents to watch directories"
+   ```
+
+5. **remove_watch_directory** - Remove directory from monitor
+   ```
+   "Remove ~/Downloads from watch directories"
+   ```
+
+6. **get_watch_directories** - Get list of monitored directories
+   ```
+   "List all monitored directories"
+   ```
+
+7. **get_status** - Get current status
+   ```
+   "Get ContextBridge current status"
+   ```
 
 ### Search Documents
 
@@ -115,6 +123,16 @@ Combine information from multiple sources:
 "Compare the requirements from doc1.pdf and doc2.docx"
 ```
 
+### Manage Watch Directories
+
+Dynamically add or remove monitored directories:
+
+```
+"Add ~/Projects to watch directories"
+"Remove ~/Downloads from watch directories"
+"List all monitored directories"
+```
+
 ## Configuration
 
 ### Supported File Formats
@@ -124,16 +142,19 @@ Combine information from multiple sources:
 
 ### Folder Monitoring
 
-Add or remove folders from monitoring:
+Manage monitored folders through Skill capabilities:
+
+```
+"Add /path/to/folder to watch directories"
+"Remove /path/to/folder from watch directories"
+"List all monitored directories"
+```
+
+Or use command line:
 
 ```bash
-# Add a folder
 cbridge watch add /path/to/folder
-
-# Remove a folder
 cbridge watch remove /path/to/folder
-
-# List monitored folders
 cbridge watch list
 ```
 
@@ -145,25 +166,41 @@ Customize search behavior in the Skill settings:
 - **Similarity Threshold**: Minimum relevance score (default: 0.5)
 - **Search Timeout**: Maximum search duration in seconds (default: 30)
 
+### Deployment Mode
+
+The Skill automatically detects and selects the best deployment mode:
+
+**Embedded Mode** (Default)
+- Uses built-in ChromaDB
+- No external dependencies
+- Best for standalone use
+
+**External Mode** (Auto-detected)
+- Connects to existing QMD and OpenViking services
+- Uses namespace isolation:
+  - QMD Collection: `contextbridge_docs`
+  - OpenViking Mount: `viking://contextbridge/`
+- Supports sharing services with other applications
+
 ## Troubleshooting
 
 ### Skill Not Connecting
 
-**Problem**: OpenClaw can't connect to ContextBridge
+**Problem**: OpenClaw can't connect to Local ContextBridge Skill
 
 **Solution**:
-1. Verify ContextBridge is running: `cbridge status`
-2. Check if the MCP server is listening on the correct port
-3. Restart both ContextBridge and OpenClaw
+1. Check if Skill is properly installed
+2. Review Skill installation logs
+3. Re-enable the Skill
 
 ### Documents Not Indexed
 
 **Problem**: Your documents don't appear in search results
 
 **Solution**:
-1. Verify folders are being monitored: `cbridge watch list`
+1. Use `get_watch_directories` capability to verify folders are monitored
 2. Check file formats are supported
-3. Rebuild the index: `cbridge index --force`
+3. Rebuild index using command line: `cbridge index --force`
 
 ### Slow Search Performance
 
@@ -182,6 +219,16 @@ Customize search behavior in the Skill settings:
 1. Reduce the number of indexed documents
 2. Clear old indexes: `cbridge clean`
 3. Monitor folder size and archive old documents
+
+### Need to Reconfigure
+
+**Problem**: Need to change deployment mode or reinitialize
+
+**Solution**:
+Use `setup_environment` capability to reconfigure:
+```
+"Reinitialize ContextBridge environment"
+```
 
 ## Advanced Configuration
 
