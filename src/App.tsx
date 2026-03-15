@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Brain, Database, FileText, Terminal, FolderSync, Settings, Activity, Languages, Zap, ArrowRight, Github, Copy, Check, Blocks, BookOpen } from 'lucide-react';
+import { Database, FileText, Terminal, FolderSync, Settings, Activity, Languages, Zap, ArrowRight, Github, Copy, Check, Blocks, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
