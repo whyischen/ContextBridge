@@ -163,10 +163,18 @@ Protocol Handler
     ▼
 OpenClaw Adapter
     │ Status: INITIALIZING
-    │ Calls skill.initialize(auto_setup=True)
+    │ Calls skill.initialize(auto_setup=False)
     ▼
 LocalContextBridgeSkill
-    │ Calls setup.auto_setup()
+    │ Returns "not_configured" status
+    │ User must explicitly call setup_environment()
+    ▼
+User Reviews Environment
+    │ Calls detect_environment()
+    │ Reviews available services
+    ▼
+User Calls setup_environment()
+    │ Calls setup.auto_setup() or setup.setup_embedded_mode()
     ▼
 ContextBridgeSetup
     │

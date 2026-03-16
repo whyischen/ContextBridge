@@ -442,19 +442,40 @@ Get skill metadata and capabilities.
 
 ## Network Security
 
-### Server Binding
+### Server Binding - Localhost Only (Enforced)
 
-The OpenClaw server must only bind to localhost:
+The OpenClaw server is **hardcoded to only bind to localhost**. Any attempt to bind to other addresses will raise a `ValueError` and fail immediately.
 
+**Supported localhost addresses:**
+- `127.0.0.1` (IPv4 localhost)
+- `localhost` (hostname)
+- `::1` (IPv6 localhost)
+- `[::1]` (IPv6 localhost with brackets)
+
+**Correct usage:**
 ```python
-# CORRECT: Localhost only
-run_server(host="127.0.0.1", port=8765)
+from local_context_bridge import run_server
 
-# INCORRECT: Exposes to network
-run_server(host="0.0.0.0", port=8765)  # DO NOT USE
+# All of these are valid and safe
+run_server(host="127.0.0.1", port=8765)  # IPv4 localhost
+run_server(host="localhost", port=8765)  # Hostname
+run_server(host="::1", port=8765)        # IPv6 localhost
+run_server()                              # Defaults to 127.0.0.1:8765
+```
 
-# INCORRECT: Exposes to specific interface
-run_server(host="192.168.1.100", port=8765)  # DO NOT USE
+**Attempting to bind to network addresses will fail:**
+```python
+# These will raise ValueError and FAIL
+run_server(host="0.0.0.0", port=8765)        # REJECTED - exposes to all interfaces
+run_server(host="192.168.1.100", port=8765)  # REJECTED - exposes to network
+run_server(host="example.com", port=8765)    # REJECTED - exposes to network
+```
+
+**Error message when attempting non-localhost binding:**
+```
+ValueError: SECURITY ERROR: Cannot bind to 0.0.0.0. 
+The OpenClaw server must only bind to localhost (127.0.0.1) 
+to prevent exposing local documents to the network.
 ```
 
 ### Why Localhost Only?
@@ -463,27 +484,35 @@ run_server(host="192.168.1.100", port=8765)  # DO NOT USE
 - **Privacy**: Keeps all data local and private
 - **Compliance**: Aligns with data protection requirements
 - **Best Practice**: Standard for local development tools
+- **Enforced**: Code validates and rejects non-localhost addresses
 
 ### If You Need Network Access
 
-If you need to expose the service to a network:
+If you need to expose the service to a network, you must:
 
-1. **Implement Authentication**: Add proper authentication layer
+1. **Implement Authentication**: Add proper authentication layer before the server
 2. **Use VPN**: Tunnel through encrypted connection
-3. **Use Firewall**: Restrict access to trusted IPs
-4. **Use Reverse Proxy**: Add security layer (nginx, Apache)
+3. **Use Firewall**: Restrict access to trusted IPs only
+4. **Use Reverse Proxy**: Add security layer (nginx, Apache) with authentication
 5. **Encrypt Data**: Use TLS/SSL for all connections
 
-Example with authentication:
+**Important:** The skill itself will not bind to network addresses. You must implement these security measures in your infrastructure layer.
 
-```python
-from local_context_bridge import run_server
-from some_auth_library import require_auth
-
-# Add authentication middleware
-@require_auth
-def secure_run_server():
-    run_server(host="127.0.0.1", port=8765)
+Example with reverse proxy (nginx):
+```nginx
+# nginx.conf - Add authentication before forwarding to localhost
+server {
+    listen 8765 ssl;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+    
+    location / {
+        proxy_pass http://127.0.0.1:8765;
+    }
+}
 ```
 
 ## Deployment Modes
@@ -915,15 +944,37 @@ Review this log to verify all operations performed by the skill.
 | Privilege escalation | No elevated privileges required |
 | Configuration tampering | File permissions, audit logging |
 | Automatic code execution | No automatic pip install, explicit user control |
+| Network exposure via WebSocket | **Code enforces localhost-only binding, rejects non-localhost addresses with ValueError** |
+
+### WebSocket Server Security (Enforced)
+
+The WebSocket server has **hardcoded security validation** that prevents binding to non-localhost addresses:
+
+**Code enforcement:**
+```python
+# In openclaw_server.py and run_server()
+localhost_addresses = ("127.0.0.1", "localhost", "::1", "[::1]")
+if host not in localhost_addresses:
+    raise ValueError(
+        f"SECURITY ERROR: Cannot bind to {host}. "
+        "The OpenClaw server must only bind to localhost (127.0.0.1) "
+        "to prevent exposing local documents to the network."
+    )
+```
+
+**What this means:**
+- Any attempt to bind to `0.0.0.0`, `192.168.x.x`, or any non-localhost address will **immediately fail** with a `ValueError`
+- The server will not start if you try to use a non-localhost address
+- This is not a warning or recommendation - it's a hard requirement enforced by the code
 
 ### Recommendations
 
 1. **Install Manually**: Install cbridge-agent manually before using the skill
 2. **Review Setup Log**: Check `~/.cbridge/setup.log` after initialization
-3. **Use Explicit Setup**: For security-critical environments, use `auto_setup=False`
+3. **Use Explicit Setup**: For security-critical environments, use `auto_setup=False` (default)
 4. **Monitor Permissions**: Verify `~/.cbridge/` directory permissions
 5. **Audit Regularly**: Review setup logs periodically
-6. **Bind to Localhost**: When running WebSocket server, bind to `127.0.0.1` only
+6. **Trust Localhost Enforcement**: The WebSocket server will reject any non-localhost binding attempt
 
 ## Advanced Configuration
 

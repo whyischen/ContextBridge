@@ -161,16 +161,41 @@ index_all()
 
 ## Network Security
 
-### Server Binding
+### Server Binding - Localhost Only (Enforced)
 
-The OpenClaw server must only bind to localhost (127.0.0.1):
+The OpenClaw server has **hardcoded validation** that enforces localhost-only binding:
 
 ```python
-# CORRECT
-run_server(host="127.0.0.1", port=8765)
+# In openclaw_server.py
+localhost_addresses = ("127.0.0.1", "localhost", "::1", "[::1]")
+if host not in localhost_addresses:
+    raise ValueError(
+        f"SECURITY ERROR: Cannot bind to {host}. "
+        "The OpenClaw server must only bind to localhost (127.0.0.1) "
+        "to prevent exposing local documents to the network."
+    )
+```
 
-# INCORRECT - DO NOT USE
-run_server(host="0.0.0.0", port=8765)
+**What this means:**
+- Any attempt to bind to non-localhost addresses will **immediately fail** with a `ValueError`
+- The server will not start if you try to use `0.0.0.0`, `192.168.x.x`, or any other non-localhost address
+- This is not a warning or recommendation - it's a hard requirement enforced by the code
+
+**Correct usage:**
+```python
+# All of these are valid and safe
+run_server(host="127.0.0.1", port=8765)  # IPv4 localhost
+run_server(host="localhost", port=8765)  # Hostname
+run_server(host="::1", port=8765)        # IPv6 localhost
+run_server()                              # Defaults to 127.0.0.1:8765
+```
+
+**Attempting to bind to network addresses will fail:**
+```python
+# These will raise ValueError and FAIL
+run_server(host="0.0.0.0", port=8765)        # REJECTED
+run_server(host="192.168.1.100", port=8765)  # REJECTED
+run_server(host="example.com", port=8765)    # REJECTED
 ```
 
 ### Threat: Network Exposure
@@ -178,20 +203,20 @@ run_server(host="0.0.0.0", port=8765)
 **Risk**: Server bound to 0.0.0.0 or other network interfaces exposes local documents to the network
 
 **Mitigation**:
+- **Code enforces localhost-only binding** - non-localhost addresses are rejected with ValueError
 - Default binding is localhost only (127.0.0.1)
-- Code validates binding address and rejects non-localhost
-- Documentation clearly warns against network exposure
+- Documentation clearly explains the security requirement
 - Examples only show localhost binding
 
-**Residual Risk**: Very Low (with validation in place)
+**Residual Risk**: Very Low (with hardcoded validation in place)
 
 ### Best Practices
 
 1. **Always use localhost**: Bind to 127.0.0.1 only
-2. **Never use 0.0.0.0**: This exposes to all network interfaces
+2. **Trust code validation**: The server will reject non-localhost addresses
 3. **Verify binding**: Check that server is listening on localhost only
 4. **Monitor access**: Review logs for unexpected connections
-5. **Use firewall**: Add firewall rules to restrict access
+5. **Use firewall**: Add firewall rules to restrict access as defense-in-depth
 
 ## Auto-Setup Behavior
 
