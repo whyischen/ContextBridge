@@ -2,9 +2,12 @@ import os
 import yaml
 from pathlib import Path
 
-CONFIG_PATH = Path("config.yaml")
+CONFIG_PATH = Path(os.path.expanduser("~/.cbridge/config.yaml"))
 
 def load_config():
+    # Ensure config directory exists
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    
     if CONFIG_PATH.exists():
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
@@ -15,6 +18,9 @@ def load_config():
     return {"mode": "embedded", "language": "en"}
 
 def save_config(config_data):
+    # Ensure config directory exists
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         yaml.safe_dump(config_data, f, default_flow_style=False)
 
