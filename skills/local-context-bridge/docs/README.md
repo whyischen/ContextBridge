@@ -1,26 +1,19 @@
-# Local ContextBridge Skill - Documentation Index
+# Local Document Search (Privacy-First) Skill - Documentation
 
-Welcome to the Local ContextBridge Skill documentation!
+Welcome to the Local Document Search Skill documentation!
 
 ## 📚 Documentation Navigation
 
 ### Getting Started
 - **[Quick Reference](./QUICK_REFERENCE.md)** - Fast lookup guide for commands and APIs
 - **[OpenClaw Integration](./OPENCLAW_INTEGRATION.md)** - How to integrate with OpenClaw
-
-### Technical Documentation
-- **[Architecture Diagrams](./ARCHITECTURE_DIAGRAM.md)** - System architecture and data flow
-- **[SKILL.md](../SKILL.md)** - OpenClaw skill specification (authoritative)
-
-### Examples
-- **[Basic Usage](../../examples/basic_usage.py)** - Simple usage example
-- **[Advanced Search](../../examples/advanced_search.py)** - Advanced features
+- **[SKILL.md](../SKILL.md)** - Complete skill documentation (authoritative)
 
 ## 🚀 Quick Start
 
 ### 1. Install
 ```bash
-pip install cbridge-agent
+pip install cbridge-agent==0.1.5
 ```
 
 ### 2. Initialize
@@ -42,8 +35,7 @@ cbridge search "your query"
 
 For complete documentation, see:
 - **[Main README](../../README.md)** - Project overview
-- **[SKILL_ARCHITECTURE.md](../../SKILL_ARCHITECTURE.md)** - Detailed architecture
-- **[CHANGELOG.md](../../CHANGELOG.md)** - Version history
+- **[SKILL.md](../SKILL.md)** - OpenClaw skill specification
 
 ## 🆘 Support
 

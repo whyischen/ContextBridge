@@ -1,9 +1,8 @@
 """Local ContextBridge Skill for OpenClaw."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from .setup import ContextBridgeSetup
-from .environment import EnvironmentDetector
-from .core_api_contract import CoreAPIContract, SearchResult, Config
+from .core_api_contract import CoreAPIContract, SearchResult
 from .version import __version__
 
 
@@ -17,7 +16,6 @@ class LocalContextBridgeSkill:
 
     def __init__(self):
         self.setup = ContextBridgeSetup()
-        self.detector = EnvironmentDetector()
         self.context_manager = None
 
     def get_metadata(self) -> Dict[str, Any]:
@@ -39,7 +37,6 @@ class LocalContextBridgeSkill:
             "permissions": [
                 "file_read",
                 "file_write",
-                "process_execution",
                 "local_storage",
                 "network_access"
             ]
@@ -49,47 +46,24 @@ class LocalContextBridgeSkill:
         """
         Initialize the skill.
         
-        IMPORTANT: cbridge-agent must be installed before calling this method.
-        Install with: pip install cbridge-agent==0.1.5
-        
-        When auto_setup=True, this will:
-        - Detect environment and available services
-        - Create ~/.cbridge/ configuration directory
-        - Probe local network endpoints to detect services
-        - Create workspace directories
-        - Write configuration files
-        
-        For security-conscious deployments, set auto_setup=False and call
-        setup_environment() explicitly after reviewing the operations.
-        
         Args:
             auto_setup: Automatically setup if not configured (default: False)
-                       Set to True only after ensuring cbridge-agent is installed
-                       and you have reviewed the setup operations
             
         Returns:
             Initialization result
         """
         try:
-            status = self.setup.get_setup_status()
+            from core.config import is_configured
             
-            if not status["configured"] and auto_setup:
+            if not is_configured() and auto_setup:
                 result = self.setup.auto_setup()
                 if result["status"] != "success":
                     return result
-                
-                # Initialize workspace
                 self.setup.initialize_workspace()
-            elif not status["configured"] and not auto_setup:
+            elif not is_configured() and not auto_setup:
                 return {
                     "status": "not_configured",
-                    "message": "Skill not configured. Call setup_environment() to configure.",
-                    "hint": "First ensure cbridge-agent is installed: pip install cbridge-agent==0.1.5",
-                    "next_steps": [
-                        "1. Install cbridge-agent: pip install cbridge-agent==0.1.5",
-                        "2. Call detect_environment() to review available services",
-                        "3. Call setup_environment(mode='embedded' or 'external') to configure"
-                    ]
+                    "message": "Skill not configured. Call setup_environment() to configure."
                 }
             
             # Load context manager
@@ -145,7 +119,6 @@ class LocalContextBridgeSkill:
             formatted_results = []
             for res in results:
                 try:
-                    # Validate result format using contract
                     validated = CoreAPIContract.validate_search_result(res)
                     formatted_results.append({
                         "source": validated.uri,
@@ -153,7 +126,6 @@ class LocalContextBridgeSkill:
                         "score": validated.score
                     })
                 except ValueError as e:
-                    # Log validation error but continue with other results
                     return {
                         "status": "error",
                         "message": f"Invalid search result format from Core: {e}"
@@ -172,17 +144,18 @@ class LocalContextBridgeSkill:
 
     def detect_environment(self) -> Dict[str, Any]:
         """
-        Detect user environment.
+        Detect user environment and available services.
         
         Returns:
             Environment information
         """
         try:
-            env = self.detector.detect_all()
+            from core.factories import detect_services
+            
+            services = detect_services()
             return {
                 "status": "success",
-                "environment": env,
-                "summary": self.detector.get_summary()
+                "environment": services
             }
         except Exception as e:
             return {
@@ -210,17 +183,23 @@ class LocalContextBridgeSkill:
                 result = self.setup.auto_setup(workspace_dir)
             elif mode == "embedded":
                 if not workspace_dir:
-                    workspace_dir = self.detector.get_workspace_dir()
+                    from pathlib import Path
+                    workspace_dir = str(Path.home() / "ContextBridge_Workspace")
                 result = self.setup.setup_embedded_mode(workspace_dir)
             elif mode == "external":
                 if not workspace_dir:
-                    workspace_dir = self.detector.get_workspace_dir()
+                    from pathlib import Path
+                    workspace_dir = str(Path.home() / "ContextBridge_Workspace")
                 
-                env = self.detector.detect_all()
+                env = self.detect_environment()
+                if env["status"] != "success":
+                    return env
+                
+                services = env["environment"]
                 result = self.setup.setup_external_mode(
                     workspace_dir=workspace_dir,
-                    qmd_endpoint=env["qmd_endpoint"],
-                    openviking_endpoint=env["openviking_endpoint"]
+                    qmd_endpoint=services.get("qmd_endpoint", "http://localhost:9090"),
+                    openviking_endpoint=services.get("openviking_endpoint", "http://localhost:8080")
                 )
             else:
                 return {
@@ -249,22 +228,9 @@ class LocalContextBridgeSkill:
             Operation result
         """
         try:
-            from core.config import get_config, save_config
+            from core.config import add_watch_dir
             
-            config_dict = get_config()
-            
-            # Validate config structure
-            try:
-                config = CoreAPIContract.validate_config(config_dict)
-            except ValueError as e:
-                return {
-                    "status": "error",
-                    "message": f"Invalid configuration from Core: {e}"
-                }
-            
-            if path not in config.watch_dirs:
-                config.watch_dirs.append(path)
-                save_config(config.to_dict())
+            if add_watch_dir(path):
                 return {
                     "status": "success",
                     "message": f"Directory added to watch list: {path}"
@@ -274,11 +240,6 @@ class LocalContextBridgeSkill:
                     "status": "info",
                     "message": f"Directory already in watch list: {path}"
                 }
-        except ImportError as e:
-            return {
-                "status": "error",
-                "message": f"Failed to import core.config: {e}"
-            }
         except Exception as e:
             return {
                 "status": "error",
@@ -296,22 +257,9 @@ class LocalContextBridgeSkill:
             Operation result
         """
         try:
-            from core.config import get_config, save_config
+            from core.config import remove_watch_dir
             
-            config_dict = get_config()
-            
-            # Validate config structure
-            try:
-                config = CoreAPIContract.validate_config(config_dict)
-            except ValueError as e:
-                return {
-                    "status": "error",
-                    "message": f"Invalid configuration from Core: {e}"
-                }
-            
-            if path in config.watch_dirs:
-                config.watch_dirs.remove(path)
-                save_config(config.to_dict())
+            if remove_watch_dir(path):
                 return {
                     "status": "success",
                     "message": f"Directory removed from watch list: {path}"
@@ -321,11 +269,6 @@ class LocalContextBridgeSkill:
                     "status": "info",
                     "message": f"Directory not in watch list: {path}"
                 }
-        except ImportError as e:
-            return {
-                "status": "error",
-                "message": f"Failed to import core.config: {e}"
-            }
         except Exception as e:
             return {
                 "status": "error",
@@ -340,28 +283,13 @@ class LocalContextBridgeSkill:
             List of watch directories
         """
         try:
-            from core.config import get_config
+            from core.config import get_watch_dirs
             
-            config_dict = get_config()
-            
-            # Validate config structure
-            try:
-                config = CoreAPIContract.validate_config(config_dict)
-            except ValueError as e:
-                return {
-                    "status": "error",
-                    "message": f"Invalid configuration from Core: {e}"
-                }
-            
+            dirs = get_watch_dirs()
             return {
                 "status": "success",
-                "directories": config.watch_dirs,
-                "count": len(config.watch_dirs)
-            }
-        except ImportError as e:
-            return {
-                "status": "error",
-                "message": f"Failed to import core.config: {e}"
+                "directories": [str(d) for d in dirs],
+                "count": len(dirs)
             }
         except Exception as e:
             return {
@@ -377,17 +305,12 @@ class LocalContextBridgeSkill:
             Status information
         """
         try:
-            setup_status = self.setup.get_setup_status()
-            watch_dirs = self.config_manager.get_watch_dirs()
+            from core.config import is_configured, CONFIG
             
             return {
                 "status": "success",
-                "configured": setup_status["configured"],
-                "environment": setup_status["environment"],
-                "config": setup_status["config"],
-                "watch_directories": watch_dirs,
-                "environment_summary": setup_status["environment_summary"],
-                "config_summary": setup_status["config_summary"]
+                "configured": is_configured(),
+                "config": CONFIG
             }
         except Exception as e:
             return {

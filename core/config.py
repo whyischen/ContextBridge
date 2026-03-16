@@ -50,6 +50,72 @@ def remove_watch_dir(path_str):
         return True
     return False
 
+def is_configured() -> bool:
+    """
+    检查 ContextBridge 是否已配置。
+    
+    Returns:
+        True 如果配置文件存在且包含有效的 mode，否则 False
+    """
+    if not CONFIG_PATH.exists():
+        return False
+    
+    config = load_config()
+    return config.get("mode") is not None
+
+def auto_configure(workspace_dir=None):
+    """
+    自动检测环境并生成配置。
+    
+    Args:
+        workspace_dir: 可选的自定义工作区目录
+        
+    Returns:
+        配置结果字典
+    """
+    from typing import Dict, Any, Optional
+    
+    # 检查是否已配置
+    if is_configured():
+        return {
+            "status": "already_configured",
+            "message": "ContextBridge is already configured",
+            "config": CONFIG
+        }
+    
+    # 检测外部服务
+    from core.factories import detect_services
+    services = detect_services()
+    
+    # 生成配置
+    config_data = {
+        "mode": "external" if (services.get("qmd_available") and services.get("openviking_available")) else "embedded",
+        "workspace_dir": workspace_dir or str(Path.home() / "ContextBridge_Workspace"),
+        "watch_dirs": [],
+    }
+    
+    if services.get("qmd_available"):
+        config_data["qmd"] = {
+            "endpoint": services.get("qmd_endpoint", "http://localhost:9090"),
+            "collection": "contextbridge_docs"
+        }
+    
+    if services.get("openviking_available"):
+        config_data["openviking"] = {
+            "endpoint": services.get("openviking_endpoint", "http://localhost:8080"),
+            "mount_path": "viking://contextbridge/"
+        }
+    
+    # 保存配置
+    save_config(config_data)
+    
+    return {
+        "status": "success",
+        "mode": config_data["mode"],
+        "workspace": config_data["workspace_dir"],
+        "message": f"ContextBridge configured in {config_data['mode']} mode"
+    }
+
 def init_workspace():
     RAW_DOCS_DIR.mkdir(parents=True, exist_ok=True)
     PARSED_DOCS_DIR.mkdir(parents=True, exist_ok=True)
