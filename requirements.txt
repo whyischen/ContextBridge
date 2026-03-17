@@ -1,9 +1,11 @@
 markitdown
 watchdog
-chromadb
+chromadb>=0.4.0
 mcp
 pydantic
 PyYAML
 click
 tqdm
 docling
+fastapi
+uvicorn

@@ -2,20 +2,30 @@ import os
 import yaml
 from pathlib import Path
 
-CONFIG_PATH = Path("config.yaml")
+CONFIG_PATH = Path(os.path.expanduser("~/.cbridge/config.yaml"))
 
 def load_config():
+    # Ensure config directory exists
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    
     if CONFIG_PATH.exists():
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
-    return {"mode": "embedded"}
+            config = yaml.safe_load(f) or {}
+            # Ensure language defaults to English if not specified
+            if "language" not in config:
+                config["language"] = "en"
+            return config
+    return {"mode": "embedded", "language": "en"}
 
 def save_config(config_data):
+    # Ensure config directory exists
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         yaml.safe_dump(config_data, f, default_flow_style=False)
 
 CONFIG = load_config()
-WORKSPACE_DIR = Path(os.path.expanduser(CONFIG.get("workspace_dir", "~/ContextBridge_Workspace")))
+WORKSPACE_DIR = Path(os.path.expanduser(CONFIG.get("workspace_dir", "~/.cbridge/workspace")))
 RAW_DOCS_DIR = WORKSPACE_DIR / "raw_docs"
 PARSED_DOCS_DIR = WORKSPACE_DIR / "parsed_docs"
 
@@ -90,19 +100,19 @@ def auto_configure(workspace_dir=None):
     # 生成配置
     config_data = {
         "mode": "external" if (services.get("qmd_available") and services.get("openviking_available")) else "embedded",
-        "workspace_dir": workspace_dir or str(Path.home() / "ContextBridge_Workspace"),
+        "workspace_dir": workspace_dir or str(Path.home() / ".cbridge" / "workspace"),
         "watch_dirs": [],
     }
     
     if services.get("qmd_available"):
         config_data["qmd"] = {
-            "endpoint": services.get("qmd_endpoint", "http://localhost:9090"),
+            "endpoint": services.get("qmd_endpoint", "http://localhost:9791"),
             "collection": "contextbridge_docs"
         }
     
     if services.get("openviking_available"):
         config_data["openviking"] = {
-            "endpoint": services.get("openviking_endpoint", "http://localhost:8080"),
+            "endpoint": services.get("openviking_endpoint", "http://localhost:9780"),
             "mount_path": "viking://contextbridge/"
         }
     
@@ -150,5 +160,7 @@ def init_workspace():
         except Exception as e:
             pass
 
-    from core.i18n import i18n
-    i18n.print("workspace_initialized", workspace=WORKSPACE_DIR, mode=CONFIG.get('mode', 'embedded'))
+    from core.i18n import t
+    from rich.console import Console
+    console = Console(stderr=True)
+    console.print(t("workspace_init", dir=WORKSPACE_DIR, mode=CONFIG.get('mode', 'embedded')))

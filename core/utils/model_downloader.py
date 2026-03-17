@@ -14,15 +14,16 @@ def ensure_chroma_model():
     This prevents ChromaDB from silently failing or showing ugly logs during initialization.
     """
     model_name = "all-MiniLM-L6-v2"
-    cache_dir = Path.home() / ".cache" / "chroma" / "onnx_models" / model_name
+    cache_dir = Path.home() / ".cbridge" / "models" / model_name
     tar_path = cache_dir / "onnx.tar.gz"
     
-    # Check if already extracted (ChromaDB looks for the model.onnx file)
-    if (cache_dir / "model.onnx").exists():
+    # Check if already extracted (ChromaDB looks for the model.onnx file in onnx subdirectory)
+    if (cache_dir / "onnx" / "model.onnx").exists():
         return
 
     console.print(t("mdl_first_run", model_name=model_name))
     console.print(t("mdl_desc"))
+    console.print(f"[cyan]📁 下载位置: {cache_dir}[/cyan]")
     
     cache_dir.mkdir(parents=True, exist_ok=True)
     

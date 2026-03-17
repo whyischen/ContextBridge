@@ -21,7 +21,7 @@ def cli():
 def init():
     console.print(t("init_welcome"))
     
-    lang = click.prompt(t("choose_lang"), type=click.Choice(['zh', 'en']), default='zh')
+    lang = click.prompt(t("choose_lang"), type=click.Choice(['zh', 'en']), default='en')
     CONFIG["language"] = lang
     
     mode = click.prompt(t("choose_mode"), type=click.Choice(['embedded', 'external']), default='embedded')
@@ -33,9 +33,9 @@ def init():
         config_data["watch_dirs"] = existing_watch_dirs
     
     if mode == 'external':
-        ov_endpoint = click.prompt(t("ov_endpoint"), default="http://localhost:8080")
+        ov_endpoint = click.prompt(t("ov_endpoint"), default="http://localhost:9780")
         ov_mount = click.prompt(t("ov_mount"), default="viking://contextbridge/")
-        qmd_endpoint = click.prompt(t("qmd_endpoint"), default="http://localhost:9090")
+        qmd_endpoint = click.prompt(t("qmd_endpoint"), default="http://localhost:9791")
         qmd_collection = click.prompt(t("qmd_collection"), default="cb_documents")
         
         config_data["openviking"] = {
@@ -47,7 +47,7 @@ def init():
             "collection": qmd_collection
         }
     
-    workspace = click.prompt(t("workspace_dir"), default="~/ContextBridge_Workspace")
+    workspace = click.prompt(t("workspace_dir"), default="~/.cbridge/workspace")
     config_data["workspace_dir"] = workspace
     
     save_config(config_data)
@@ -92,6 +92,79 @@ def start():
     init_workspace()
     console.print(t("start_engine"))
     start_watching()
+
+@cli.command(help=t("serve_desc"))
+@click.option('--port', default=9790, help='Port to run the API server on')
+@click.option('--host', default='127.0.0.1', help='Host to bind the API server to')
+@click.option('--daemon', is_flag=True, help='Run as background daemon')
+def serve(port, host, daemon):
+    import uvicorn
+    import socket
+    import os
+    from core.utils.logger import setup_logger
+    
+    # Fallback mechanism for port conflicts
+    original_port = port
+    max_retries = 10
+    available_port = port
+    
+    for p in range(port, port + max_retries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((host, p))
+                available_port = p
+                break
+            except OSError:
+                continue
+                
+    if available_port != original_port:
+        console.print(f"[yellow]⚠️ Port {original_port} is in use. Falling back to port {available_port}.[/yellow]")
+        port = available_port
+
+    if daemon:
+        # Daemonize the process
+        pid = os.fork()
+        if pid > 0:
+            # Parent process exits
+            console.print(t("serve_daemon_start", pid=pid))
+            console.print(t("serve_daemon_url", host=host, port=port))
+            console.print(t("serve_daemon_hint"))
+            sys.exit(0)
+        
+        # Child process continues
+        os.chdir("/")
+        os.setsid()
+        os.umask(0)
+        
+        # Setup logging to file
+        logger = setup_logger("cbridge-serve")
+        
+        # Redirect stdout/stderr to logger
+        class LoggerWriter:
+            def __init__(self, log_func):
+                self.log_func = log_func
+            
+            def write(self, msg):
+                if msg and msg.strip():
+                    self.log_func(msg.strip())
+            
+            def flush(self):
+                pass
+            
+            def isatty(self):
+                return False
+        
+        sys.stdout = LoggerWriter(logger.info)
+        sys.stderr = LoggerWriter(logger.info)  # Use info level instead of error
+
+    console.print(t("serve_start", host=host, port=port))
+    init_workspace()
+    # Start the watcher in the background
+    import threading
+    watcher_thread = threading.Thread(target=start_watching, daemon=True)
+    watcher_thread.start()
+    
+    uvicorn.run("core.api_server:app", host=host, port=port, log_level="info")
 
 @cli.command(help=t("search_desc"))
 @click.argument('query')

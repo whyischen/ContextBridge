@@ -25,7 +25,10 @@ setup(
         "PyYAML",
         "click",
         "tqdm",
-        "rich"
+        "rich",
+        "docling",
+        "fastapi",
+        "uvicorn"
     ],
     entry_points={
         "console_scripts": [

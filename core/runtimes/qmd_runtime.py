@@ -10,7 +10,7 @@ console = Console(stderr=True)
 class QMDRuntime(ISearchRuntime):
     def __init__(self, config):
         self.mode = config.get("mode", "embedded")
-        self.endpoint = config.get("qmd", {}).get("endpoint", "http://localhost:9090")
+        self.endpoint = config.get("qmd", {}).get("endpoint", "http://localhost:9791")
         self.collection_name = config.get("qmd", {}).get("collection", "cb_documents")
         
         if self.mode == "embedded":
@@ -19,14 +19,25 @@ class QMDRuntime(ISearchRuntime):
             ensure_chroma_model()
             
             import chromadb
+            from chromadb.config import Settings
             import os
             from pathlib import Path
             
-            workspace_dir = Path(os.path.expanduser(config.get("workspace_dir", "~/ContextBridge_Workspace")))
+            workspace_dir = Path(os.path.expanduser(config.get("workspace_dir", "~/.cbridge/workspace")))
             db_path = workspace_dir / "qmd_embedded"
             db_path.mkdir(parents=True, exist_ok=True)
             
-            self.client = chromadb.PersistentClient(path=str(db_path))
+            # Configure ChromaDB to use our custom models directory
+            models_dir = Path.home() / ".cbridge" / "models"
+            
+            # Use new Chroma client initialization with Settings
+            settings = Settings(
+                is_persistent=True,
+                persist_directory=str(db_path),
+                anonymized_telemetry=False,
+            )
+            
+            self.client = chromadb.Client(settings)
             self.collection = self.client.get_or_create_collection(name=self.collection_name)
         else:
             console.print(t("qmd_init_ext", endpoint=self.endpoint, collection=self.collection_name))
@@ -37,7 +48,7 @@ class QMDRuntime(ISearchRuntime):
             # 模拟 QMD 的 upsert
             # ChromaDB 可以自动生成 embedding，这里我们简化处理，传入 text
             text = payload.pop("text", "")
-            self.collection.add(
+            self.collection.upsert(
                 documents=[text],
                 metadatas=[payload],
                 ids=[doc_id]
@@ -75,4 +86,16 @@ class QMDRuntime(ISearchRuntime):
             return formatted_results
         else:
             console.print(t("qmd_search_ext", endpoint=self.endpoint, collection=collection_name, query=query_text))
+            return []
+
+    def get_all_metadatas(self, collection_name: str) -> List[Dict[str, Any]]:
+        if self.mode == "embedded":
+            try:
+                results = self.collection.get(include=["metadatas"])
+                if results and "metadatas" in results and results["metadatas"]:
+                    return [meta for meta in results["metadatas"] if meta]
+            except Exception as e:
+                logger.error(f"Error getting metadatas from ChromaDB: {e}")
+            return []
+        else:
             return []
