@@ -4,7 +4,7 @@ import { Database, Terminal, FolderSync, Settings, Activity, Zap, BookOpen, File
 export const APP_CONTENT = {
   en: {
     title: "ContextBridge",
-    badgeText: "Now live on PyPI",
+    badgeText: "Open Source · MIT License",
     heroTitle: "Give ",
     heroHighlight: "AI Agents",
     heroSuffix: " Instant Access to Your Local Documents",
@@ -66,7 +66,7 @@ export const APP_CONTENT = {
   },
   zh: {
     title: "ContextBridge",
-    badgeText: "已在 PyPI 发布",
+    badgeText: "开源 · MIT 协议",
     heroTitle: "让 ",
     heroHighlight: "AI 智能体",
     heroSuffix: <> 瞬间读懂你的<span className="whitespace-nowrap">本地文档</span></>,

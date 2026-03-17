@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FileText, Github, Languages, Sun, Moon, Monitor, Blocks } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { BookMarked, Github, Languages, Sun, Moon, Monitor, Blocks } from 'lucide-react';
 
 interface NavbarProps {
   lang: 'en' | 'zh';
@@ -12,82 +12,117 @@ interface NavbarProps {
 }
 
 export default function Navbar({ lang, setLang, theme, setTheme, isThemeOpen, setIsThemeOpen }: NavbarProps) {
-  const location = useLocation();
+  const themeRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Close theme panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
+        setIsThemeOpen(false);
+      }
+    }
+    if (isThemeOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isThemeOpen, setIsThemeOpen]);
+
+  const handleDocsClick = () => {
+    if (location.pathname === '/') {
+      document.getElementById('docs-center')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#docs-center');
+    }
+  };
+
+  const themeIcon = theme === 'light' ? <Sun size={15} /> : theme === 'dark' ? <Moon size={15} /> : <Monitor size={15} />;
 
   return (
-    <nav className="fixed top-0 w-full border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-black/50 backdrop-blur-md z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 sm:gap-3 font-bold text-lg sm:text-xl group cursor-pointer selection:bg-transparent">
-          <div className="relative w-8 sm:w-9 h-8 sm:h-9 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 rounded-xl blur-md opacity-20 dark:opacity-50 group-hover:opacity-40 dark:group-hover:opacity-80 transition-opacity duration-300"></div>
-            <div className="relative w-full h-full bg-gradient-to-tr from-indigo-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] border border-white/20">
-              <Blocks size={18} className="sm:w-5 sm:h-5 text-white drop-shadow-md" />
+    <nav className="fixed top-0 w-full border-b border-slate-200/80 dark:border-white/[0.06] bg-white/75 dark:bg-[#0a0a0a]/80 backdrop-blur-xl z-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5 font-semibold text-base group select-none">
+          <div className="relative w-7 h-7 flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg blur-sm opacity-40 group-hover:opacity-70 transition-opacity duration-300" />
+            <div className="relative w-full h-full bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center">
+              <Blocks size={15} className="text-white" />
             </div>
           </div>
-          <span className="hidden sm:inline bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-indigo-600 to-slate-700 dark:from-white dark:via-indigo-100 dark:to-gray-300 tracking-tight font-sans">ContextBridge</span>
+          <span className="text-slate-800 dark:text-white tracking-tight">ContextBridge</span>
         </Link>
-        <div className="flex items-center gap-3 sm:gap-6">
-          {/* Theme Toggle */}
-          <div 
-            className="relative flex items-center bg-slate-200/50 dark:bg-white/5 rounded-full p-1 border border-slate-200 dark:border-white/10 transition-all duration-300 ease-in-out overflow-hidden cursor-pointer"
-            onMouseEnter={() => setIsThemeOpen(true)}
-            onMouseLeave={() => setIsThemeOpen(false)}
-            onClick={() => !isThemeOpen && setIsThemeOpen(true)}
-            style={{ width: isThemeOpen ? '108px' : '36px' }}
+
+        {/* Right controls */}
+        <div className="flex items-center gap-1">
+
+          {/* Docs */}
+          <button
+            onClick={handleDocsClick}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
           >
-            <div className="flex items-center gap-1">
-              <button 
-                onClick={(e) => { e.stopPropagation(); setTheme('light'); }}
-                className={`p-1.5 rounded-full transition-all duration-200 ${theme === 'light' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white'} ${!isThemeOpen && theme !== 'light' ? 'opacity-0 invisible absolute' : 'opacity-100 visible relative'}`}
-                title="Light Mode"
-              >
-                <Sun size={14} />
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setTheme('dark'); }}
-                className={`p-1.5 rounded-full transition-all duration-200 ${theme === 'dark' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white'} ${!isThemeOpen && theme !== 'dark' ? 'opacity-100 visible relative' : 'opacity-0 invisible absolute'}`}
-                title="Dark Mode"
-              >
-                <Moon size={14} />
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setTheme('system'); }}
-                className={`p-1.5 rounded-full transition-all duration-200 ${theme === 'system' ? 'bg-slate-300/50 dark:bg-white/10 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white'} ${!isThemeOpen && theme !== 'system' ? 'opacity-100 visible relative' : 'opacity-0 invisible absolute'}`}
-                title="System Preference"
-              >
-                <Monitor size={14} />
-              </button>
-            </div>
-          </div>
-          <button 
-            onClick={() => {
-              if (location.pathname !== '/') {
-                navigate('/');
-                setTimeout(() => {
-                  document.getElementById('docs-center')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              } else {
-                document.getElementById('docs-center')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium"
-          >
-            <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <BookMarked size={15} />
             <span className="hidden sm:inline">Docs</span>
           </button>
-          <a href="https://github.com/whyischen/ContextBridge" target="_blank" rel="noreferrer" className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
-            <Github size={16} className="sm:w-[18px] sm:h-[18px]" />
+
+          {/* GitHub */}
+          <a
+            href="https://github.com/whyischen/ContextBridge"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+          >
+            <Github size={15} />
             <span className="hidden sm:inline">GitHub</span>
           </a>
-          <button 
+
+          {/* Divider */}
+          <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-1" />
+
+          {/* Language toggle */}
+          <button
             onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-            className="flex items-center gap-1 sm:gap-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors text-xs sm:text-sm font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
           >
-            <Languages size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span className="hidden sm:inline">{lang === 'en' ? '中文' : 'English'}</span>
-            <span className="sm:hidden">{lang === 'en' ? 'ZH' : 'EN'}</span>
+            <Languages size={15} />
+            <span className="text-xs font-medium">{lang === 'en' ? '中文' : 'EN'}</span>
           </button>
+
+          {/* Theme toggle — after language */}
+          <div ref={themeRef} className="relative">
+            <button
+              onClick={() => setIsThemeOpen(!isThemeOpen)}
+              className="flex items-center justify-center w-8 h-8 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
+              title="Toggle theme"
+            >
+              {themeIcon}
+            </button>
+
+            {isThemeOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/40 overflow-hidden py-1 z-50">
+                {([
+                  { value: 'light', label: lang === 'en' ? 'Light' : '浅色', icon: <Sun size={14} /> },
+                  { value: 'dark',  label: lang === 'en' ? 'Dark'  : '深色', icon: <Moon size={14} /> },
+                  { value: 'system',label: lang === 'en' ? 'System': '跟随系统', icon: <Monitor size={14} /> },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setTheme(opt.value); setIsThemeOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                      theme === opt.value
+                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {opt.icon}
+                    {opt.label}
+                    {theme === opt.value && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
