@@ -431,21 +431,75 @@ def stop():
 
 @cli.command(help=t("search_desc"))
 @click.argument('query')
-@click.option('--top-k', default=5, help='Returns top K results')
-def search(query, top_k):
+@click.option('--top-k', default=5, help='Number of results to return (default: 5)')
+@click.option('--threshold', default=0.5, type=float, help='Minimum similarity score threshold, 0.0-1.0 (default: 0.5)')
+@click.option('--rerank/--no-rerank', default=True, help='Enable/disable keyword-based reranking (default: enabled)')
+def search(query, top_k, threshold, rerank):
     context_manager = initialize_system()
-    results = context_manager.recursive_retrieve(query, top_k=top_k)
+    results = context_manager.recursive_retrieve(query, top_k=top_k * 2 if rerank else top_k)
     
     if not results:
         console.print(t("search_empty"))
         return
+    
+    # Apply threshold filtering
+    if threshold > 0.0:
+        original_count = len(results)
+        results = [r for r in results if r.get('score', 0.0) >= threshold]
+        filtered_count = original_count - len(results)
+        if filtered_count > 0:
+            console.print(t("search_filtered", count=filtered_count, threshold=threshold))
+    
+    # Apply keyword-based reranking
+    if rerank and results:
+        results = _rerank_by_keywords(query, results)
+        results = results[:top_k]  # Limit to top_k after reranking
+        console.print(t("search_reranked"))
+    
+    if not results:
+        console.print(t("search_empty_after_filter"))
+        return
         
     console.print(t("search_results_title", query=query))
-    for res in results:
+    for idx, res in enumerate(results, 1):
         source = res.get('uri', 'Unknown')
         content = res.get('content', '')
         score = res.get('score', 0.0)
-        console.print(t("search_result_item", source=source, score=score, line="-"*40, content=content.strip()))
+        console.print(t("search_result_item_numbered", 
+                       idx=idx, 
+                       source=source, 
+                       score=score, 
+                       line="-"*40, 
+                       content=content.strip()))
+
+def _rerank_by_keywords(query: str, results: list) -> list:
+    """
+    Rerank search results based on keyword matching.
+    Boosts scores for results that contain query keywords.
+    """
+    import re
+    
+    # Extract keywords from query (simple tokenization)
+    keywords = set(re.findall(r'\w+', query.lower()))
+    
+    # Calculate keyword match scores
+    for result in results:
+        content = result.get('content', '').lower()
+        uri = result.get('uri', '').lower()
+        
+        # Count keyword matches in content and URI
+        keyword_matches = sum(1 for kw in keywords if kw in content or kw in uri)
+        keyword_ratio = keyword_matches / len(keywords) if keywords else 0
+        
+        # Boost original score based on keyword matches
+        original_score = result.get('score', 0.0)
+        # Weighted combination: 70% original score + 30% keyword match
+        boosted_score = original_score * 0.7 + keyword_ratio * 0.3
+        result['score'] = boosted_score
+        result['keyword_matches'] = keyword_matches
+    
+    # Sort by boosted score
+    return sorted(results, key=lambda x: x.get('score', 0.0), reverse=True)
 
 @cli.command(help=t("status_desc"))
 def status():
