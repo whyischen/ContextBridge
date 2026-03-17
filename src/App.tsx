@@ -37,7 +37,7 @@ export default function App() {
       root.classList.remove('light', 'dark');
       root.classList.add(actualTheme);
       root.style.colorScheme = actualTheme;
-      root.style.backgroundColor = actualTheme === 'dark' ? '#0a0a0a' : '#f8fafc';
+      root.style.backgroundColor = actualTheme === 'dark' ? '#1c1e21' : '#f8fafc';
     };
 
     applyTheme();
@@ -58,7 +58,7 @@ export default function App() {
   const t = APP_CONTENT[lang];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#1c1e21] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/30 transition-colors duration-300">
       <Navbar 
         lang={lang} 
         setLang={setLang} 

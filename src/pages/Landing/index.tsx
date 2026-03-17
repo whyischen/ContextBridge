@@ -82,7 +82,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
         </motion.p>
 
         <motion.div {...fadeUp(0.24)} className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
-          <div className="flex items-center justify-between w-full sm:flex-1 bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-mono text-sm shadow-sm">
+          <div className="flex items-center justify-between w-full sm:flex-1 bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-mono text-sm shadow-sm">
             <span className="text-slate-500 dark:text-slate-400 select-all truncate">pip install cbridge-agent</span>
             <button
               onClick={copyInstallCmd}
@@ -109,7 +109,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
             <motion.div
               key={idx}
               {...fadeUpView(0.05 * idx)}
-              className="group bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+              className="group bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/[0.07] rounded-2xl p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
                 <feature.icon size={18} className="text-indigo-600 dark:text-indigo-400" />
@@ -146,7 +146,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: 0.06 * idx, ease: 'easeOut' }}
                     onClick={() => setActiveDoc(id)}
-                    className="group text-left bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+                    className="group text-left bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/[0.07] rounded-2xl p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
@@ -207,7 +207,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -8 }}
                       transition={{ duration: 0.2, ease: 'easeOut' }}
-                      className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl px-6 sm:px-8 py-8"
+                      className="bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/[0.07] rounded-2xl px-6 sm:px-8 py-8"
                     >
                       <div className="prose prose-slate dark:prose-invert max-w-none
                         prose-headings:font-semibold prose-headings:tracking-tight
@@ -219,7 +219,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
                         prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
                         prose-strong:text-slate-800 dark:prose-strong:text-slate-200
                         prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[0.8em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-                        prose-pre:bg-slate-50 dark:prose-pre:bg-[#0f0f0f] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs
+                        prose-pre:bg-slate-50 dark:prose-pre:bg-[#1e2124] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs
                       ">
                         <ReactMarkdown rehypePlugins={[rehypeRaw]}>
                           {DOC_MAP[activeDoc][lang]}
@@ -244,7 +244,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
             {...fadeUpView(0.08)}
             className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.07] shadow-xl shadow-black/5 dark:shadow-black/30"
           >
-            <div className="flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-[#161616] border-b border-slate-200 dark:border-white/[0.07]">
+            <div className="flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-[#2a2d31] border-b border-slate-200 dark:border-white/[0.07]">
               <span className="w-3 h-3 rounded-full bg-red-400/80" />
               <span className="w-3 h-3 rounded-full bg-amber-400/80" />
               <span className="w-3 h-3 rounded-full bg-emerald-400/80" />
@@ -253,7 +253,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
                 <span className="text-xs font-mono text-slate-400 dark:text-slate-500">bash</span>
               </div>
             </div>
-            <div className="bg-white dark:bg-[#0f0f0f] px-5 py-5 font-mono text-xs sm:text-sm space-y-4">
+            <div className="bg-white dark:bg-[#1e2124] px-5 py-5 font-mono text-xs sm:text-sm space-y-4">
               {t.steps.map((step: any, idx: number) => (
                 <div key={idx}>
                   <p className="text-slate-400 dark:text-slate-500 mb-1 select-none">{step.comment}</p>

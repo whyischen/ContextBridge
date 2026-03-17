@@ -84,7 +84,7 @@ export default function DocsPage({ lang }: DocsPageProps) {
   const content = DOC_MAP[activeDoc][lang];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] pt-14">
+    <div className="min-h-screen bg-white dark:bg-[#1c1e21] pt-14">
       <div className="max-w-6xl mx-auto flex">
 
         {/* ── Desktop sidebar ─────────────────────────────────────────── */}
@@ -101,7 +101,7 @@ export default function DocsPage({ lang }: DocsPageProps) {
         <div className="flex-1 min-w-0">
 
           {/* Mobile nav bar */}
-          <div className="lg:hidden sticky top-14 z-30 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur border-b border-slate-100 dark:border-white/[0.06] px-4 py-2.5">
+          <div className="lg:hidden sticky top-14 z-30 bg-white/90 dark:bg-[#1c1e21]/90 backdrop-blur border-b border-slate-100 dark:border-white/[0.06] px-4 py-2.5">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex items-center gap-2 w-full text-sm font-medium text-slate-700 dark:text-slate-200"
@@ -129,7 +129,7 @@ export default function DocsPage({ lang }: DocsPageProps) {
               prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
               prose-strong:text-slate-800 dark:prose-strong:text-slate-200
               prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[0.8em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-[#f8f9fc] dark:prose-pre:bg-[#111] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs sm:prose-pre:text-sm
+              prose-pre:bg-[#f8f9fc] dark:prose-pre:bg-[#1e2124] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs sm:prose-pre:text-sm
               prose-blockquote:border-indigo-300 dark:prose-blockquote:border-indigo-500/40 prose-blockquote:text-slate-500 dark:prose-blockquote:text-slate-400
             ">
               <ReactMarkdown rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>

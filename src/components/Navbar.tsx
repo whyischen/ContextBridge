@@ -38,7 +38,7 @@ export default function Navbar({ lang, setLang, theme, setTheme, isThemeOpen, se
   const themeIcon = theme === 'light' ? <Sun size={15} /> : theme === 'dark' ? <Moon size={15} /> : <Monitor size={15} />;
 
   return (
-    <nav className="fixed top-0 w-full border-b border-slate-200/80 dark:border-white/[0.06] bg-white/75 dark:bg-[#0a0a0a]/80 backdrop-blur-xl z-50">
+    <nav className="fixed top-0 w-full border-b border-slate-200/80 dark:border-white/[0.06] bg-white/75 dark:bg-[#1c1e21]/80 backdrop-blur-xl z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
 
         {/* Logo */}
@@ -98,7 +98,7 @@ export default function Navbar({ lang, setLang, theme, setTheme, isThemeOpen, se
             </button>
 
             {isThemeOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/40 overflow-hidden py-1 z-50">
+              <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#2a2d31] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/40 overflow-hidden py-1 z-50">
                 {([
                   { value: 'light', label: lang === 'en' ? 'Light' : '浅色', icon: <Sun size={14} /> },
                   { value: 'dark',  label: lang === 'en' ? 'Dark'  : '深色', icon: <Moon size={14} /> },
