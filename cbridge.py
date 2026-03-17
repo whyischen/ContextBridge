@@ -19,18 +19,79 @@ def cli():
 
 @cli.command(help=t("init_desc"))
 def init():
+    import os
+    import signal
+    import shutil
+    
     console.print(t("init_welcome"))
     
+    # Step 1: Check if configuration exists and ask to delete
+    if CONFIG_PATH.exists():
+        console.print(t("init_config_exists", path=CONFIG_PATH.absolute()))
+        if click.confirm(t("init_config_delete_confirm"), default=True):
+            CONFIG_PATH.unlink()
+            console.print(t("init_config_deleted"))
+            
+            # Also clean up workspace if exists
+            if WORKSPACE_DIR.exists():
+                if click.confirm(t("init_workspace_delete_confirm", dir=WORKSPACE_DIR), default=False):
+                    shutil.rmtree(WORKSPACE_DIR)
+                    console.print(t("init_workspace_deleted"))
+        else:
+            console.print(t("init_cancelled"))
+            return
+    
+    # Step 2: Stop any running services
+    pid_file = Path.home() / ".cbridge" / "cbridge.pid"
+    watcher_pid_file = Path.home() / ".cbridge" / "cbridge_watcher.pid"
+    
+    stopped_any = False
+    
+    # Stop watcher
+    if watcher_pid_file.exists():
+        try:
+            pid = int(watcher_pid_file.read_text().strip())
+            if sys.platform == "win32":
+                import subprocess
+                subprocess.run(["taskkill", "/PID", str(pid), "/F"], check=True, capture_output=True)
+            else:
+                os.kill(pid, signal.SIGTERM)
+            watcher_pid_file.unlink()
+            console.print(t("init_stopped_watcher", pid=pid))
+            stopped_any = True
+        except (ProcessLookupError, subprocess.CalledProcessError, ValueError):
+            watcher_pid_file.unlink()
+        except PermissionError:
+            console.print(t("init_stop_permission_error"))
+    
+    # Stop serve daemon
+    if pid_file.exists():
+        try:
+            pid = int(pid_file.read_text().strip())
+            if sys.platform == "win32":
+                import subprocess
+                subprocess.run(["taskkill", "/PID", str(pid), "/F"], check=True, capture_output=True)
+            else:
+                os.kill(pid, signal.SIGTERM)
+            pid_file.unlink()
+            console.print(t("init_stopped_serve", pid=pid))
+            stopped_any = True
+        except (ProcessLookupError, subprocess.CalledProcessError, ValueError):
+            pid_file.unlink()
+        except PermissionError:
+            console.print(t("init_stop_permission_error"))
+    
+    if stopped_any:
+        console.print(t("init_services_stopped"))
+    
+    # Step 3: Interactive configuration
+    console.print(t("init_config_prompt"))
+    
     lang = click.prompt(t("choose_lang"), type=click.Choice(['zh', 'en']), default='en')
-    CONFIG["language"] = lang
     
     mode = click.prompt(t("choose_mode"), type=click.Choice(['embedded', 'external']), default='embedded')
     
-    # Preserve existing watch_dirs if any
-    existing_watch_dirs = CONFIG.get("watch_dirs", [])
-    config_data = {"mode": mode, "language": lang}
-    if existing_watch_dirs:
-        config_data["watch_dirs"] = existing_watch_dirs
+    config_data = {"mode": mode, "language": lang, "watch_dirs": []}
     
     if mode == 'external':
         ov_endpoint = click.prompt(t("ov_endpoint"), default="http://localhost:9780")
@@ -53,6 +114,18 @@ def init():
     save_config(config_data)
     console.print(t("config_saved", path=CONFIG_PATH.absolute()))
     init_workspace()
+    
+    # Step 4: Start daemon automatically
+    console.print(t("init_starting_daemon"))
+    import subprocess
+    
+    try:
+        # Use subprocess to call 'cbridge start --daemon'
+        cmd = [sys.executable, sys.argv[0], "start", "--daemon"]
+        subprocess.run(cmd, check=True)
+        console.print(t("init_complete"))
+    except subprocess.CalledProcessError as e:
+        console.print(t("init_daemon_failed", error=str(e)))
 
 @cli.group(help=t("watch_desc"))
 def watch():
@@ -193,8 +266,8 @@ def start(daemon):
 @cli.command(help=t("serve_desc"))
 @click.option('--port', default=9790, help='Port to run the API server on')
 @click.option('--host', default='127.0.0.1', help='Host to bind the API server to')
-@click.option('--daemon', is_flag=True, help='Run as background daemon')
-def serve(port, host, daemon):
+@click.option('--foreground', is_flag=True, help='Run in foreground (default is background)')
+def serve(port, host, foreground):
     import uvicorn
     import socket
     import os
@@ -218,6 +291,9 @@ def serve(port, host, daemon):
         console.print(f"[yellow]⚠️ Port {original_port} is in use. Falling back to port {available_port}.[/yellow]")
         port = available_port
 
+    # Default to daemon mode unless --foreground is specified
+    daemon = not foreground
+    
     if daemon:
         if sys.platform == "win32":
             # Windows: spawn a detached subprocess
@@ -270,11 +346,8 @@ def serve(port, host, daemon):
         sys.stdout = LoggerWriter(logger.info)
         sys.stderr = LoggerWriter(logger.info)
     else:
-        # 前台运行模式 - 显示后台启动提示
-        console.print(t("serve_start", host=host, port=port))
-        console.print()
-        console.print("[yellow]💡 Tip: To run in background, use:[/yellow]")
-        console.print(f"[cyan]   cbridge serve --daemon --host {host} --port {port}[/cyan]")
+        # 前台运行模式
+        console.print(t("serve_foreground_start", host=host, port=port))
         console.print()
         console.print("[dim]Press Ctrl+C to stop[/dim]")
         console.print()
