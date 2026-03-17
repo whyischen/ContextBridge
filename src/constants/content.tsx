@@ -5,9 +5,9 @@ export const APP_CONTENT = {
   en: {
     title: "ContextBridge",
     badgeText: "Open Source · MIT License",
-    heroTitle: "Give ",
-    heroHighlight: "AI Agents",
-    heroSuffix: <><br />Effortless Access to Your Local Documents</>,
+    heroTitle: "Give AI Agents",
+    heroHighlight: "",
+    heroSuffix: <>Effortless Access<br />to Your Local Documents</>,
     subtitle: "A lightweight Knowledge Base plugin for Openclaw, Cursor and other AI agents. Let your AI assistants directly read and understand your local Word, Excel, and PDF files.",
     docsSection: "Documentation",
     docCards: [
@@ -67,9 +67,9 @@ export const APP_CONTENT = {
   zh: {
     title: "ContextBridge",
     badgeText: "开源 · MIT 协议",
-    heroTitle: "让 ",
-    heroHighlight: "AI 智能体",
-    heroSuffix: <><br />轻松读懂你的本地文档</>,
+    heroTitle: "让 AI 智能体",
+    heroHighlight: "",
+    heroSuffix: <>轻松读懂<br />你的本地文档</>,
     subtitle: "专为 Openclaw、Cursor 等智能体设计的极速知识库外挂。让你的 AI 助手直接读取、理解本地的 Word、Excel 和 PDF 文件，无需上传，隐私安全。",
     docsSection: "文档中心",
     docCards: [

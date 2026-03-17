@@ -58,32 +58,50 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
     <main className="min-h-screen">
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center text-center px-4 pt-28 sm:pt-36 pb-20 sm:pb-28 overflow-hidden">
+      <section className="relative flex flex-col items-center text-center px-4 pt-24 sm:pt-32 pb-16 sm:pb-20 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-indigo-500/10 via-violet-500/5 to-transparent rounded-full blur-3xl" />
         </div>
 
         <motion.h1
           {...fadeUp(0.08)}
-          className="max-w-3xl text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.25] text-slate-900 dark:text-white mb-5 [font-family:'Noto_Sans_SC',sans-serif] font-black"
+          className="max-w-4xl text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight text-white mb-6 text-center"
+          style={{ 
+            fontFamily: "'Aeonik', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            lineHeight: '1.15'
+          }}
         >
-          {t.heroTitle}
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-400">
-            {t.heroHighlight}
-          </span>
-          {t.heroSuffix}
+          {lang === 'zh' ? (
+            <>
+              <span className="block">
+                让 <span className="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">AI 智能体</span> 轻松读懂
+              </span>
+              <span className="block">
+                你的<span className="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">本地文档</span>
+              </span>
+            </>
+          ) : (
+            <>
+              Connect <span className="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">AI Agents</span>
+              <br className="hidden md:block" />
+              to your <span className="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">Local Documents</span>
+            </>
+          )}
         </motion.h1>
 
         <motion.p
           {...fadeUp(0.16)}
-          className="max-w-xl text-base sm:text-lg text-slate-500 dark:text-slate-400 leading-relaxed mb-10"
+          className="max-w-3xl mx-auto text-lg md:text-xl leading-relaxed text-gray-400 mb-10 font-medium text-center"
+          style={{ 
+            fontFamily: "'Inter', sans-serif"
+          }}
         >
           {t.subtitle}
         </motion.p>
 
-        <motion.div {...fadeUp(0.24)} className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
+        <motion.div {...fadeUp(0.24)} className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md mt-12">
           <div className="flex items-center justify-between w-full sm:flex-1 bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-mono text-sm shadow-sm">
-            <span className="text-slate-500 dark:text-slate-400 select-all truncate">pip install cbridge-agent</span>
+            <span className="text-slate-500 dark:text-slate-400 select-all truncate font-medium">pip install cbridge-agent</span>
             <button
               onClick={copyInstallCmd}
               className="ml-3 flex-shrink-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
@@ -94,7 +112,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
           </div>
           <a
             href="#quickstart"
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-sm font-medium transition-colors shadow-lg shadow-indigo-500/25 whitespace-nowrap w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-indigo-500/25 whitespace-nowrap w-full sm:w-auto"
           >
             {t.quickStart}
             <ArrowRight size={15} />

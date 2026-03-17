@@ -29,7 +29,7 @@ cbridge watch add /path/to/your/documents
 ContextBridge must be running in the background to serve requests:
 ```bash
 # Start both the file watcher and the API server
-cbridge start
+cbridge serve --damon
 ```
 *The API server runs at `http://127.0.0.1:9790` by default.*
 
