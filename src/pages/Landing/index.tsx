@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Terminal, ArrowRight, Copy, Check, BookOpen, Zap, ChevronDown } from 'lucide-react';
+import { Terminal, ArrowRight, Copy, Check, BookOpen, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -48,16 +48,6 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
     }
   }, [location.hash]);
 
-  const handleDocClick = (id: 'guide' | 'openclaw') => {
-    if (activeDoc === id) {
-      setActiveDoc(null);
-    } else {
-      setActiveDoc(id);
-      setTimeout(() => {
-        document.getElementById('doc-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    }
-  };
 
   const docCards = [
     { id: 'guide'    as const, icon: BookOpen, title: t.docCards[0].title, desc: t.docCards[0].desc },
@@ -133,74 +123,110 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
 
       {/* Docs */}
       <section id="docs-center" className="px-4 sm:px-6 pb-20 sm:pb-28">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <motion.h2 {...fadeUpView(0)} className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
             {t.docsSection}
           </motion.h2>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            {docCards.map(({ id, icon: Icon, title, desc }, idx) => {
-              const isActive = activeDoc === id;
-              return (
-                <motion.button
-                  key={id}
-                  {...fadeUpView(0.08 * idx)}
-                  onClick={() => handleDocClick(id)}
-                  className={`group text-left rounded-2xl p-6 border transition-all duration-300 ${
-                    isActive
-                      ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-300 dark:border-indigo-500/40'
-                      : 'bg-white dark:bg-[#111] border-slate-200 dark:border-white/[0.07] hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                      isActive
-                        ? 'bg-indigo-100 dark:bg-indigo-500/20'
-                        : 'bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 group-hover:scale-105'
-                    }`}>
-                      <Icon size={18} className="text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <ChevronDown size={15} className={`mt-1 transition-all duration-300 ${
-                      isActive ? 'rotate-180 text-indigo-500 dark:text-indigo-400' : 'text-slate-300 dark:text-slate-600 group-hover:text-indigo-400'
-                    }`} />
-                  </div>
-                  <h4 className={`text-sm font-semibold mb-1.5 ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-900 dark:text-white'}`}>
-                    {title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          <AnimatePresence>
-            {activeDoc && (
+          <AnimatePresence mode="wait" initial={false}>
+            {/* ── Collapsed: horizontal card grid ── */}
+            {!activeDoc ? (
               <motion.div
-                id="doc-content"
-                key={activeDoc}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="overflow-hidden"
+                key="grid"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto"
               >
-                <div className="mt-4 bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl px-6 sm:px-10 py-8">
-                  <div className="prose prose-slate dark:prose-invert max-w-none
-                    prose-headings:font-semibold prose-headings:tracking-tight
-                    prose-h1:text-xl prose-h1:mb-5 prose-h1:pb-4 prose-h1:border-b prose-h1:border-slate-200 dark:prose-h1:border-white/10
-                    prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3
-                    prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2
-                    prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-7 prose-p:text-sm
-                    prose-li:text-slate-600 dark:prose-li:text-slate-400 prose-li:text-sm
-                    prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
-                    prose-strong:text-slate-800 dark:prose-strong:text-slate-200
-                    prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[0.8em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-                    prose-pre:bg-slate-50 dark:prose-pre:bg-[#0f0f0f] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs
-                  ">
-                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                      {DOC_MAP[activeDoc][lang]}
-                    </ReactMarkdown>
-                  </div>
+                {docCards.map(({ id, icon: Icon, title, desc }, idx) => (
+                  <motion.button
+                    key={id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.06 * idx, ease: 'easeOut' }}
+                    onClick={() => setActiveDoc(id)}
+                    className="group text-left bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl p-6 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <Icon size={18} className="text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <ArrowRight size={15} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all duration-200 mt-1" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">{title}</h4>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
+                  </motion.button>
+                ))}
+              </motion.div>
+            ) : (
+              /* ── Expanded: sidebar + content ── */
+              <motion.div
+                key="expanded"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="flex flex-col lg:flex-row gap-4 items-start"
+              >
+                {/* Sidebar */}
+                <div className="w-full lg:w-52 shrink-0 lg:sticky lg:top-20 flex flex-row lg:flex-col gap-2">
+                  {docCards.map(({ id, icon: Icon, title }) => {
+                    const isActive = activeDoc === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => setActiveDoc(id)}
+                        className={`flex-1 lg:flex-none flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all duration-200 ${
+                          isActive
+                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <Icon size={15} className="shrink-0" />
+                        <span className="truncate">{title}</span>
+                      </button>
+                    );
+                  })}
+                  {/* Close button */}
+                  <button
+                    onClick={() => setActiveDoc(null)}
+                    className="lg:mt-2 flex-none flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors border border-transparent"
+                  >
+                    <ArrowRight size={13} className="rotate-180 shrink-0" />
+                    {lang === 'en' ? 'Back' : '收起'}
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeDoc}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                      className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/[0.07] rounded-2xl px-6 sm:px-8 py-8"
+                    >
+                      <div className="prose prose-slate dark:prose-invert max-w-none
+                        prose-headings:font-semibold prose-headings:tracking-tight
+                        prose-h1:text-xl prose-h1:mb-5 prose-h1:pb-4 prose-h1:border-b prose-h1:border-slate-200 dark:prose-h1:border-white/10
+                        prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3
+                        prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2
+                        prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-7 prose-p:text-sm
+                        prose-li:text-slate-600 dark:prose-li:text-slate-400 prose-li:text-sm
+                        prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-slate-800 dark:prose-strong:text-slate-200
+                        prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[0.8em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+                        prose-pre:bg-slate-50 dark:prose-pre:bg-[#0f0f0f] prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.07] prose-pre:rounded-xl prose-pre:text-xs
+                      ">
+                        <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                          {DOC_MAP[activeDoc][lang]}
+                        </ReactMarkdown>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
