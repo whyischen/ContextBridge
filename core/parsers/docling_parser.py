@@ -23,13 +23,9 @@ class DoclingParser(BaseParser):
     def parse(self, file_path: Path, **kwargs) -> str:
         """Parse PDF using Docling and export to Markdown."""
         try:
-            logger.info(f"Docling parsing PDF: {file_path.name}")
             result = self._converter.convert(str(file_path))
-            
-            # Export to markdown format which is best for AI agents
             markdown_content = result.document.export_to_markdown()
             return markdown_content or ""
-            
         except Exception as e:
             logger.error(f"Docling failed to parse {file_path}: {e}")
-            return ""
+            raise

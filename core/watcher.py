@@ -21,32 +21,39 @@ DEBOUNCE_SECONDS = 2.0
 
 def _worker_loop(context_manager):
     """Background worker to process files from the queue."""
-    while True:
-        try:
-            action, file_path = task_queue.get()
-            if action == "stop":
+    try:
+        while True:
+            try:
+                action, file_path = task_queue.get()
+                if action == "stop":
+                    task_queue.task_done()
+                    break
+                
+                path = Path(file_path)
+                if action == "deleted":
+                    console.print(t("watch_del", name=path.name))
+                    context_manager.delete_context(path.name)
+                elif action in ["created", "modified"]:
+                    content, error = parse_document(path)
+                    if content:
+                        console.print(f"[green]✅ {path.name}[/green]")
+                        if path.suffix.lower() not in ['.md', '.txt']:
+                            parsed_path = PARSED_DOCS_DIR / f"{path.stem}.md"
+                            with open(parsed_path, "w", encoding="utf-8") as f:
+                                f.write(content)
+                        context_manager.write_context(path.name, content, level="L2")
+                    else:
+                        console.print(f"[red]❌ {path.name}[/red] [dim]{error}[/dim]")
+            except Exception as e:
+                console.print(f"[bold red]Error processing {file_path}: {e}[/bold red]")
+                import traceback
+                traceback.print_exc()
+            finally:
                 task_queue.task_done()
-                break
-            
-            path = Path(file_path)
-            if action == "deleted":
-                console.print(t("watch_del", name=path.name))
-                context_manager.delete_context(path.name)
-            elif action in ["created", "modified"]:
-                content = parse_document(path)
-                if content:
-                    # Only save to parsed_docs if conversion was needed (not .md or .txt)
-                    if path.suffix.lower() not in ['.md', '.txt']:
-                        parsed_path = PARSED_DOCS_DIR / f"{path.stem}.md"
-                        with open(parsed_path, "w", encoding="utf-8") as f:
-                            f.write(content)
-                    
-                    # Always write to context manager (indexing)
-                    context_manager.write_context(path.name, content, level="L2")
-        except Exception as e:
-            console.print(f"[bold red]Error processing {file_path}: {e}[/bold red]")
-        finally:
-            task_queue.task_done()
+    except Exception as e:
+        console.print(f"[bold red]Worker thread fatal error: {e}[/bold red]")
+        import traceback
+        traceback.print_exc()
 
 class DocumentHandler(FileSystemEventHandler):
     def __init__(self, context_manager):
@@ -86,6 +93,34 @@ class DocumentHandler(FileSystemEventHandler):
         if not event.is_directory:
             self._queue_task(event.src_path, "deleted")
 
+def index_dir(directory: Path):
+    """Index a single directory and show progress."""
+    context_manager = initialize_system()
+    all_files = []
+    for root, _, files in os.walk(directory):
+        for f in files:
+            path = Path(root) / f
+            if path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                all_files.append(path)
+
+    if not all_files:
+        console.print(t("idx_no_files"))
+        return
+
+    console.print(t("idx_found", count=len(all_files)))
+    for path in tqdm(all_files, desc=t("idx_progress"), unit="file"):
+        content, error = parse_document(path)
+        if content:
+            if path.suffix.lower() not in ['.md', '.txt']:
+                parsed_path = PARSED_DOCS_DIR / f"{path.stem}.md"
+                with open(parsed_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+            context_manager.write_context(path.name, content, level="L2")
+            tqdm.write(f"✅ {path.name}")
+        else:
+            tqdm.write(f"❌ {path.name}  {error}")
+    console.print(t("idx_complete"))
+
 def index_all():
     context_manager = initialize_system()
     watch_dirs = get_watch_dirs()
@@ -114,19 +149,27 @@ def index_all():
 
     console.print(t("idx_found", count=len(all_files)))
     for path in tqdm(all_files, desc=t("idx_progress"), unit="file"):
-        content = parse_document(path)
+        content, error = parse_document(path)
         if content:
             # Only save to parsed_docs if conversion was needed (not .md or .txt)
             if path.suffix.lower() not in ['.md', '.txt']:
                 parsed_path = PARSED_DOCS_DIR / f"{path.stem}.md"
                 with open(parsed_path, "w", encoding="utf-8") as f:
                     f.write(content)
-            
             context_manager.write_context(path.name, content, level="L2")
+            tqdm.write(f"✅ {path.name}")
+        else:
+            tqdm.write(f"❌ {path.name}  {error}")
     console.print(t("idx_complete"))
 
 def start_watching():
-    context_manager = initialize_system()
+    try:
+        context_manager = initialize_system()
+    except Exception as e:
+        console.print(f"[bold red]Failed to initialize system: {e}[/bold red]")
+        import traceback
+        traceback.print_exc()
+        return
     
     # Start worker thread for async parsing
     worker_thread = threading.Thread(target=_worker_loop, args=(context_manager,), daemon=True)
@@ -135,16 +178,38 @@ def start_watching():
     event_handler = DocumentHandler(context_manager)
     observer = PollingObserver(timeout=2)  # Fork-safe observer with 2-second polling interval
     
-    watch_dirs = get_watch_dirs()
-    for d in watch_dirs:
-        observer.schedule(event_handler, str(d), recursive=True)
-        console.print(t("watch_dir", dir=d))
-        
+    watched_dirs = set()
+
+    def schedule_new_dirs():
+        try:
+            for d in get_watch_dirs():
+                d = Path(d)
+                if str(d) not in watched_dirs:
+                    d.mkdir(parents=True, exist_ok=True)
+                    observer.schedule(event_handler, str(d), recursive=True)
+                    console.print(t("watch_dir", dir=d))
+                    watched_dirs.add(str(d))
+        except Exception as e:
+            console.print(f"[bold red]Error scheduling watch directories: {e}[/bold red]")
+            import traceback
+            traceback.print_exc()
+
+    schedule_new_dirs()
     observer.start()
     try:
         while True:
-            time.sleep(1)
+            time.sleep(5)
+            schedule_new_dirs()  # Periodically check for newly added watch dirs
     except KeyboardInterrupt:
+        console.print("\n[yellow]Shutting down...[/yellow]")
         observer.stop()
         task_queue.put(("stop", None))
-    observer.join()
+    except Exception as e:
+        console.print(f"[bold red]Error in watch loop: {e}[/bold red]")
+        import traceback
+        traceback.print_exc()
+        observer.stop()
+        task_queue.put(("stop", None))
+    finally:
+        observer.join()
+        console.print("[green]✅ ContextBridge watcher stopped.[/green]")

@@ -33,7 +33,7 @@ class MarkItDownParser(BaseParser):
             
         except Exception as e:
             logger.error(f"MarkItDown failed to parse {file_path}: {e}")
-            return ""
+            raise
 
     def _parse_text(self, file_path: Path) -> str:
         """Helper to parse plain text files with encoding detection."""

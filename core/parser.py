@@ -13,8 +13,16 @@ from core.parsers.docling_parser import DoclingParser
 from core.parsers.composite_parser import CompositeParser
 from core.interfaces.parser import BaseParser
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Suppress noisy third-party service logs
+for _noisy_logger in [
+    "docling", "docling.document_converter", "docling.models",
+    "docling.utils", "docling.datamodel", "docling.pipeline",
+    "rapidocr", "RapidOCR", "huggingface_hub", "transformers",
+    "torch", "PIL",
+]:
+    logging.getLogger(_noisy_logger).setLevel(logging.ERROR)
 
 # Global parser instance
 _current_parser: Optional[BaseParser] = None
@@ -66,16 +74,15 @@ def check_file_access(file_path: Path) -> tuple[bool, str]:
     
     return True, ""
 
-def parse_document(file_path: Path, use_ocr: bool = True) -> str:
+def parse_document(file_path: Path, use_ocr: bool = True) -> tuple[str, str]:
     """
     Parse document using the configured parser.
-    Gracefully skips unsupported or inaccessible files.
+    Returns (content, error_reason). error_reason is empty string on success.
     """
     # 1. Check file accessibility
     is_accessible, error_msg = check_file_access(file_path)
     if not is_accessible:
-        logger.warning(f"Skipping file: {error_msg}")
-        return ""
+        return "", error_msg
     
     # 2. Get the parser
     parser = get_parser()
@@ -84,21 +91,16 @@ def parse_document(file_path: Path, use_ocr: bool = True) -> str:
     # 3. Check if extension is supported
     suffix = file_path.suffix.lower()
     if suffix not in supported_exts:
-        # Silently skip or log a debug message for unsupported types
-        # This fulfills the "skip unsupported files without affecting main flow" requirement
-        logger.debug(f"Skipping unsupported file type: {suffix} ({file_path.name})")
-        return ""
+        return "", f"Unsupported file type: {suffix}"
     
     # 4. Perform parsing
     try:
         content = parser.parse(file_path, use_ocr=use_ocr)
         if not content:
-            logger.warning(f"Parser returned empty content for: {file_path.name}")
-        return content
+            return "", "Parser returned empty content"
+        return content, ""
     except Exception as e:
-        # Catch all exceptions to ensure main flow is not interrupted
-        logger.error(f"Error parsing {file_path.name}: {e}")
-        return ""
+        return "", str(e)
 
 # For backward compatibility, we provide a property-like access
 class _SupportedExtensionsProxy(set):
