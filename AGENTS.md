@@ -5,12 +5,10 @@
 ContextBridge 是一个本地 AI 代理的全能内存桥接工具。它能够将真实世界的文档（PDF、Office 文件、Markdown）即时提供给本地 AI 代理（如 OpenClaw、Claude Desktop、Cursor）。
 
 **核心特性：**
+- 🔌 **MCP 和 API 就绪**：原生支持 Model Context Protocol，无缝集成 Claude Desktop、Cursor 和 OpenClaw
+- 📄 **多格式解析**：支持 PDF（Docling）、Word、Excel、PPTX 等格式
 - 🔋 **开箱即用**：内置嵌入式 ChromaDB 向量数据库，无需手动安装或配置
 - 👁️ **零接触同步**：使用 Watchdog 监控文件夹变化，自动解析并重建向量索引
-- 🧹 **幽灵数据清理**：自动检测并清理离线期间删除的文件
-- 📄 **多格式解析**：支持 PDF（Docling）、Word、Excel、PPTX 等格式
-- 🔌 **MCP 和 API 就绪**：原生支持 Model Context Protocol，无缝集成 Claude Desktop、Cursor 和 OpenClaw
-- 🌐 **国际化支持**：完全支持英文和中文界面
 - 🔒 **100% 本地隐私**：所有数据存储在本地硬盘，不依赖云 LLM API
 
 ## 项目结构
