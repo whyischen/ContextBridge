@@ -12,47 +12,59 @@ class QMDRuntime(ISearchRuntime):
         self.mode = config.get("mode", "embedded")
         self.endpoint = config.get("qmd", {}).get("endpoint", "http://localhost:9791")
         self.collection_name = config.get("qmd", {}).get("collection", "cb_documents")
+        self.config = config
         self.client = None
         self.collection = None
+        self._initialized = False
         
+        # 延迟初始化 ChromaDB，避免解释器关闭时的竞态条件
         if self.mode == "embedded":
-            try:
-                logger.info("⚙️ Initializing embedded QMD engine (based on ChromaDB)...")
-                from core.utils.model_downloader import ensure_chroma_model
-                ensure_chroma_model()
-                
-                import chromadb
-                from chromadb.config import Settings
-                import os
-                from pathlib import Path
-                
-                workspace_dir = Path(os.path.expanduser(config.get("workspace_dir", "~/.cbridge/workspace")))
-                db_path = workspace_dir / "qmd_embedded"
-                db_path.mkdir(parents=True, exist_ok=True)
-                
-                # Configure ChromaDB to use our custom models directory
-                models_dir = Path.home() / ".cbridge" / "models"
-                
-                # Use new Chroma client initialization with Settings
-                settings = Settings(
-                    is_persistent=True,
-                    persist_directory=str(db_path),
-                    anonymized_telemetry=False,
-                )
-                
-                self.client = chromadb.Client(settings)
-                self.collection = self.client.get_or_create_collection(name=self.collection_name)
-            except Exception as e:
-                console.print(f"[bold red]Failed to initialize embedded QMD: {e}[/bold red]")
-                logger.error(f"QMD initialization error: {e}", exc_info=True)
-                raise
+            logger.info("⚙️ QMD runtime configured for embedded mode (lazy initialization)")
         else:
             logger.info(f"⚙️ Initializing external QMD: {self.endpoint}")
             self.client = None # 实际场景中这里会初始化 QMD SDK
+    
+    def _ensure_initialized(self):
+        """延迟初始化 ChromaDB，在第一次使用时调用"""
+        if self._initialized or self.mode != "embedded":
+            return
+        
+        try:
+            logger.info("⚙️ Initializing embedded QMD engine (based on ChromaDB)...")
+            from core.utils.model_downloader import ensure_chroma_model
+            ensure_chroma_model()
+            
+            import chromadb
+            from chromadb.config import Settings
+            import os
+            from pathlib import Path
+            
+            workspace_dir = Path(os.path.expanduser(self.config.get("workspace_dir", "~/.cbridge/workspace")))
+            db_path = workspace_dir / "qmd_embedded"
+            db_path.mkdir(parents=True, exist_ok=True)
+            
+            # Configure ChromaDB to use our custom models directory
+            models_dir = Path.home() / ".cbridge" / "models"
+            
+            # Use new Chroma client initialization with Settings
+            settings = Settings(
+                is_persistent=True,
+                persist_directory=str(db_path),
+                anonymized_telemetry=False,
+            )
+            
+            self.client = chromadb.Client(settings)
+            self.collection = self.client.get_or_create_collection(name=self.collection_name)
+            self._initialized = True
+        except Exception as e:
+            console.print(f"[bold red]Failed to initialize embedded QMD: {e}[/bold red]")
+            logger.error(f"QMD initialization error: {e}", exc_info=True)
+            raise
 
     def upsert(self, collection_name: str, doc_id: str, vector: List[float], payload: Dict[str, Any]) -> bool:
         if self.mode == "embedded":
             try:
+                self._ensure_initialized()
                 if not self.collection:
                     logger.error("Collection not initialized")
                     return False
@@ -75,6 +87,7 @@ class QMDRuntime(ISearchRuntime):
     def delete_by_uri(self, collection_name: str, uri: str) -> bool:
         if self.mode == "embedded":
             try:
+                self._ensure_initialized()
                 if not self.collection:
                     logger.error("Collection not initialized")
                     return False
@@ -91,6 +104,7 @@ class QMDRuntime(ISearchRuntime):
     def hybrid_search(self, collection_name: str, query_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
         if self.mode == "embedded":
             try:
+                self._ensure_initialized()
                 if not self.collection:
                     logger.error("Collection not initialized")
                     return []
@@ -119,6 +133,7 @@ class QMDRuntime(ISearchRuntime):
     def get_all_metadatas(self, collection_name: str) -> List[Dict[str, Any]]:
         if self.mode == "embedded":
             try:
+                self._ensure_initialized()
                 if not self.collection:
                     logger.error("Collection not initialized")
                     return []

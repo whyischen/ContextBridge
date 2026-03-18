@@ -506,7 +506,8 @@ def watch_remove(path, skip_cleanup, wait):
                     console.print(t("cleanup_error", error=e))
         
         # 启动后台线程
-        cleanup_thread = threading.Thread(target=cleanup_vectors, daemon=False, name="VectorCleanup")
+        # 使用守护线程避免解释器关闭时的竞态条件
+        cleanup_thread = threading.Thread(target=cleanup_vectors, daemon=True, name="VectorCleanup")
         cleanup_thread.start()
         
         # 如果用户选择等待，则阻塞直到完成
@@ -515,6 +516,10 @@ def watch_remove(path, skip_cleanup, wait):
             console.print(t("cleanup_in_progress"))
             console.print()
             cleanup_thread.join()
+        else:
+            # 给后台线程一点时间完成初始化，避免解释器关闭时的竞态条件
+            import time
+            time.sleep(0.5)
         
     except Exception as e:
         console.print(t("cleanup_start_failed", error=e))
