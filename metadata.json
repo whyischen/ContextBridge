@@ -1,5 +1,5 @@
 {
   "name": "ContextBridge",
-  "description": "The All-in-One Local Memory Bridge for AI Agents. Feed your local AI Agents with Office documents.",
+  "description": "Connect AI Agents to your Local Documents",
   "requestFramePermissions": []
 }
