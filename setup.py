@@ -26,7 +26,6 @@ setup(
         "click",
         "tqdm",
         "rich",
-        "docling",
         "fastapi",
         "uvicorn"
     ],

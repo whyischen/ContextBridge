@@ -76,15 +76,15 @@ def is_configured() -> bool:
 def auto_configure(workspace_dir=None):
     """
     自动检测环境并生成配置。
-    
+
     Args:
         workspace_dir: 可选的自定义工作区目录
-        
+
     Returns:
         配置结果字典
     """
     from typing import Dict, Any, Optional
-    
+
     # 检查是否已配置
     if is_configured():
         return {
@@ -92,33 +92,34 @@ def auto_configure(workspace_dir=None):
             "message": "ContextBridge is already configured",
             "config": CONFIG
         }
-    
+
     # 检测外部服务
     from core.factories import detect_services
     services = detect_services()
-    
+
     # 生成配置
     config_data = {
         "mode": "external" if (services.get("qmd_available") and services.get("openviking_available")) else "embedded",
         "workspace_dir": workspace_dir or str(Path.home() / ".cbridge" / "workspace"),
         "watch_dirs": [],
+        "pdf_parser_strategy": "markitdown"  # "markitdown" or "docling"
     }
-    
+
     if services.get("qmd_available"):
         config_data["qmd"] = {
             "endpoint": services.get("qmd_endpoint", "http://localhost:9791"),
             "collection": "contextbridge_docs"
         }
-    
+
     if services.get("openviking_available"):
         config_data["openviking"] = {
             "endpoint": services.get("openviking_endpoint", "http://localhost:9780"),
             "mount_path": "viking://contextbridge/"
         }
-    
+
     # 保存配置
     save_config(config_data)
-    
+
     return {
         "status": "success",
         "mode": config_data["mode"],

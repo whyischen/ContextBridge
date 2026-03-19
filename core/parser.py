@@ -9,9 +9,10 @@ import os
 from typing import Optional
 
 from core.parsers.markitdown_parser import MarkItDownParser
-from core.parsers.docling_parser import DoclingParser
+from core.parsers.pdf_parser import PDFParser
 from core.parsers.composite_parser import CompositeParser
 from core.interfaces.parser import BaseParser
+from core.config import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -33,20 +34,21 @@ def get_parser() -> BaseParser:
     if _current_parser is None:
         # 1. Initialize base parsers
         mid_parser = MarkItDownParser()
-        
+
         # 2. Create composite router
         composite = CompositeParser(default_parser=mid_parser)
-        
-        # 3. Register specialized parsers
+
+        # 3. Register specialized parsers based on config
+        pdf_strategy = CONFIG.get("pdf_parser_strategy", "markitdown")
+        logger.info(f"Using PDF parser strategy: {pdf_strategy}")
+
         try:
-            docling_parser = DoclingParser()
-            composite.register_parser(docling_parser, {'.pdf'})
-            logger.info("Docling parser registered for PDF support")
-        except ImportError:
-            logger.warning("Docling not installed, falling back to MarkItDown for PDFs")
-        except Exception as e:
-            logger.error(f"Failed to initialize Docling: {e}")
-            
+            pdf_parser = PDFParser(strategy=pdf_strategy)
+            composite.register_parser(pdf_parser, {'.pdf'})
+        except ImportError as e:
+            logger.error(f"Failed to initialize PDF parser: {e}")
+            logger.error("Please install required dependencies: pip install -r requirements.txt")
+
         _current_parser = composite
     return _current_parser
 

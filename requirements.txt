@@ -6,7 +6,6 @@ pydantic
 PyYAML
 click
 tqdm
-docling
 transformers>=4.47.0
 fastapi
 uvicorn
