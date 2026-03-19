@@ -46,8 +46,6 @@ cbridge watch list    # View watched folders
 
 ### 4. Start Service
 ```bash
-cbridge start         # Start watcher + API server
-# or
 cbridge serve         # API only (http://127.0.0.1:9790)
 ```
 
