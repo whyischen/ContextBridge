@@ -72,7 +72,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
 
         <motion.h1
           {...fadeUp(0.08)}
-          className="max-w-4xl text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight text-white mb-6 text-center"
+          className="max-w-4xl text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight text-slate-900 dark:text-white mb-6 text-center"
           style={{ 
             fontFamily: "'Aeonik', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             lineHeight: '1.15'
@@ -98,7 +98,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
 
         <motion.p
           {...fadeUp(0.16)}
-          className="max-w-3xl mx-auto text-lg md:text-xl leading-relaxed text-gray-400 mb-10 font-medium text-center"
+          className="max-w-3xl mx-auto text-lg md:text-xl leading-relaxed text-slate-500 dark:text-gray-400 mb-10 font-medium text-center"
           style={{ 
             fontFamily: "'Inter', sans-serif"
           }}
@@ -111,7 +111,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
           <div className="flex-1 w-full flex items-center justify-between bg-white dark:bg-[#25282c] border border-slate-200 dark:border-white/[0.08] rounded-2xl pl-4 pr-1 py-1 shadow-sm ring-1 ring-black/[0.02] dark:ring-white/[0.02]">
             <div className="flex items-center gap-2.5 overflow-hidden">
               <Terminal size={14} className="text-slate-400 dark:text-slate-500" />
-              <span className="text-slate-600 dark:text-slate-300 font-mono text-[13px] truncate">pip install cbridge-agent</span>
+              <span className="text-slate-800 dark:text-slate-300 font-mono text-[13px] truncate">pip install cbridge-agent</span>
             </div>
             <button
               onClick={copyInstallCmd}
@@ -126,20 +126,17 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
             {/* Primary Action */}
             <a
               href="#quickstart"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-slate-900 dark:hover:bg-white dark:hover:text-slate-900 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/10"
+              className="flex-1 sm:flex-none flex items-center justify-center px-3.5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-slate-900 dark:hover:bg-white dark:hover:text-slate-900 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/10"
             >
               {t.quickStart}
-              <ArrowRight size={15} />
             </a>
             
-            {/* Integration Entry */}
             <button
               onClick={() => handleOpenDoc('openclaw')}
-              className="flex-none flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 hover:border-indigo-400/50 text-slate-600 dark:text-slate-300 font-bold text-sm transition-all shadow-sm group"
-              title={t.openclawCta.badge}
+              className="flex-none flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-300 dark:border-white/10 hover:border-indigo-400/50 transition-all group shadow-sm"
             >
-              <Blocks size={16} className="text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
-              <span>OpenClaw</span>
+              <img src="/openclaw-color.svg" className="w-5 h-5 group-hover:scale-110 transition-transform" alt="OpenClaw" />
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-300">OpenClaw</span>
             </button>
           </div>
         </motion.div>
@@ -159,7 +156,7 @@ export default function LandingPage({ lang, t, copied, copyInstallCmd }: Landing
                 <feature.icon size={18} className="text-indigo-600 dark:text-indigo-400" />
               </div>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1.5">{feature.title}</h3>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}
         </div>
