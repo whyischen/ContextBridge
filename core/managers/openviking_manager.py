@@ -15,7 +15,7 @@ class OpenVikingManager(IContextManager):
         self.mount_path = config.get("openviking", {}).get("mount_path", "viking://contextbridge/")
         self.collection_name = config.get("qmd", {}).get("collection", "cb_documents")
         
-        console.print(t("ov_init_embed", mount_path=self.mount_path))
+        logger.debug(f"Initializing embedded OpenViking manager, mount path: {self.mount_path}")
 
     def _generate_l0_abstract(self, content: str) -> str:
         # 模拟生成 L0 摘要 (实际应调用 LLM)

@@ -17,7 +17,7 @@ setup(
     packages=find_packages(),
     py_modules=["cbridge"],
     install_requires=[
-        "markitdown",
+        "markitdown[docx,xlsx,pptx,pdf]",
         "watchdog",
         "chromadb",
         "mcp",

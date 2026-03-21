@@ -342,19 +342,18 @@ def watch_add(path, no_index, quiet, background):
                     console.print(t("watch_add_background_failed", error=e))
                     console.print(t("watch_add_fallback_foreground"))
                     # 回退到前台执行
-                    result = index_dir(target_path, show_progress=not quiet)
+                    result = index_dir(target_path, show_progress=not quiet, skip_scan_log=True)
                     _display_index_summary(result, quiet)
             else:
-                # 询问用户是否需要后台执行
-                console.print()
-                if len(all_files) > 10:  # 文件较多时建议后台执行
+                use_background = False
+                if len(all_files) >= 10:  # 只在文件数量 >= 10 时询问
+                    console.print()
                     console.print(t("watch_add_many_files_hint"))
-                
-                import click
-                use_background = click.confirm(
-                    t("watch_add_background_confirm"),
-                    default=len(all_files) > 10
-                )
+                    import click
+                    use_background = click.confirm(
+                        t("watch_add_background_confirm"),
+                        default=True
+                    )
                 
                 if use_background:
                     console.print()
@@ -382,14 +381,13 @@ def watch_add(path, no_index, quiet, background):
                         console.print(t("watch_add_background_failed", error=e))
                         console.print(t("watch_add_fallback_foreground"))
                         # 回退到前台执行
-                        result = index_dir(target_path, show_progress=not quiet)
+                        result = index_dir(target_path, show_progress=not quiet, skip_scan_log=True)
                         _display_index_summary(result, quiet)
                 else:
                     console.print()
                     console.print(t("watch_add_starting_foreground"))
                     # 执行向量化并显示进度
-                    result = index_dir(target_path, show_progress=not quiet)
-                    _display_index_summary(result, quiet)
+                    result = index_dir(target_path, show_progress=not quiet, skip_scan_log=True)
                     
                     console.print()
                     console.print(t("watch_add_foreground_complete"))

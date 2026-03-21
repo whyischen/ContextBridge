@@ -201,13 +201,17 @@ class DocumentHandler(FileSystemEventHandler):
         if not event.is_directory:
             self._queue_task(event.src_path, "deleted")
 
-def index_dir(directory: Path, show_progress=True):
+def index_dir(directory: Path, show_progress=True, skip_scan_log=False):
     """Index a single directory and show progress."""
+    import warnings
+    # Temporarily suppress general warnings like pydub to avoid spamming the progress bar
+    warnings.filterwarnings("ignore")
+        
     context_manager = initialize_system()
     all_files = []
-    
+        
     # 扫描阶段
-    if show_progress:
+    if show_progress and not skip_scan_log:
         log_and_print(t("idx_scanning_dir", directory=directory))
     
     if directory.is_file():
@@ -224,9 +228,14 @@ def index_dir(directory: Path, show_progress=True):
         log_and_print(t("idx_no_files"))
         return {"total": 0, "success": 0, "failed": 0, "failed_files": []}
 
-    if show_progress:
+    if show_progress and not skip_scan_log:
         log_and_print(t("idx_files_found", count=len(all_files)))
         log_and_print(t("idx_starting_vectorize"))
+        
+    logger.info("=" * 50)
+    logger.info(f"开始索引向量数据: {directory}")
+    logger.info(f"需要索引 {len(all_files)} 个文件")
+    logger.info("=" * 50)
     
     success_count = 0
     failed_count = 0
@@ -256,7 +265,16 @@ def index_dir(directory: Path, show_progress=True):
     
     if show_progress:
         log_and_print(t("idx_vectorize_complete"))
-        log_and_print(t("idx_summary", success=success_count, failed=failed_count))
+        # Removed duplicate idx_summary log since caller prints it
+        
+    logger.info("=" * 50)
+    logger.info("📊 索引汇总")
+    logger.info(f"总文件数: {len(all_files)}")
+    logger.info(f"成功: {success_count}")
+    logger.info(f"失败: {failed_count}")
+    logger.info("✅ 向量数据索引完成")
+    logger.info("=" * 50)
+
     
     return {
         "total": len(all_files),
