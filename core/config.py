@@ -39,8 +39,6 @@ def get_watch_dirs():
 
 def add_watch_dir(path_str):
     path = Path(os.path.expanduser(path_str)).absolute()
-    if not path.exists():
-        path.mkdir(parents=True, exist_ok=True)
     
     dirs = CONFIG.get("watch_dirs", [str(RAW_DOCS_DIR.absolute())])
     if str(path) not in dirs:

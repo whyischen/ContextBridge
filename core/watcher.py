@@ -129,6 +129,27 @@ class DocumentHandler(FileSystemEventHandler):
         path = Path(file_path)
         if path.suffix.lower() not in SUPPORTED_EXTENSIONS:
             return
+            
+        # Filter files to only those that are explicitly watched or inside watched dirs
+        try:
+            resolved_path = path.resolve()
+            is_watched = False
+            for d in get_watch_dirs():
+                d_path = Path(d).resolve()
+                if d_path.is_file() and resolved_path == d_path:
+                    is_watched = True
+                    break
+                elif d_path.is_dir():
+                    try:
+                        resolved_path.relative_to(d_path)
+                        is_watched = True
+                        break
+                    except ValueError:
+                        pass
+            if not is_watched:
+                return
+        except Exception:
+            pass
 
         # 检查文件大小（低性能设备优化）
         try:
@@ -189,11 +210,15 @@ def index_dir(directory: Path, show_progress=True):
     if show_progress:
         log_and_print(t("idx_scanning_dir", directory=directory))
     
-    for root, _, files in os.walk(directory):
-        for f in files:
-            path = Path(root) / f
-            if path.suffix.lower() in SUPPORTED_EXTENSIONS:
-                all_files.append(path)
+    if directory.is_file():
+        if directory.suffix.lower() in SUPPORTED_EXTENSIONS:
+            all_files.append(directory)
+    else:
+        for root, _, files in os.walk(directory):
+            for f in files:
+                path = Path(root) / f
+                if path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                    all_files.append(path)
 
     if not all_files:
         log_and_print(t("idx_no_files"))
@@ -247,12 +272,18 @@ def index_all():
     all_files = []
     local_filenames = set()
     for d in watch_dirs:
-        for root, _, files in os.walk(d):
-            for f in files:
-                path = Path(root) / f
-                if path.suffix.lower() in SUPPORTED_EXTENSIONS:
-                    all_files.append(path)
-                    local_filenames.add(path.name)
+        d_path = Path(d)
+        if d_path.is_file():
+            if d_path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                all_files.append(d_path)
+                local_filenames.add(d_path.name)
+        else:
+            for root, _, files in os.walk(d):
+                for f in files:
+                    path = Path(root) / f
+                    if path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                        all_files.append(path)
+                        local_filenames.add(path.name)
                     
     # Clean up ghost data
     indexed_filenames = context_manager.get_all_filenames()
@@ -316,12 +347,18 @@ def start_watching():
     def schedule_new_dirs():
         try:
             for d in get_watch_dirs():
-                d = Path(d)
-                if str(d) not in watched_dirs:
-                    d.mkdir(parents=True, exist_ok=True)
-                    observer.schedule(event_handler, str(d), recursive=True)
-                    log_and_print(t("watch_dir", dir=d))
-                    watched_dirs.add(str(d))
+                d_path = Path(d)
+                watch_path = d_path.parent if d_path.is_file() else d_path
+                
+                if str(watch_path) not in watched_dirs:
+                    if not watch_path.exists():
+                        watch_path.mkdir(parents=True, exist_ok=True)
+                    
+                    # Schedule monitoring for the directory
+                    # If the user specifically wanted to watch a file, we watch its parent but the event handler will filter
+                    observer.schedule(event_handler, str(watch_path), recursive=not d_path.is_file())
+                    log_and_print(t("watch_dir", dir=watch_path))
+                    watched_dirs.add(str(watch_path))
         except Exception as e:
             log_and_print(t("watch_schedule_error", error=e), level="error")
             import traceback

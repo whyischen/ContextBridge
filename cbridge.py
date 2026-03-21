@@ -248,6 +248,11 @@ def watch_add(path, no_index, quiet, background):
     import os
     from pathlib import Path as PathLib
     
+    target_path = PathLib(os.path.expanduser(path)).absolute()
+    if not target_path.exists():
+        console.print(t("watch_add_not_exist", path=path))
+        sys.exit(1)
+        
     if add_watch_dir(path):
         console.print(t("watch_add_success", path=path))
         
