@@ -64,7 +64,24 @@ def _display_index_summary(result, quiet=False):
         if len(result['failed_files']) > 5:
             console.print(t("and_more", count=len(result['failed_files']) - 5))
 
+def get_version():
+    try:
+        import importlib.metadata
+        return importlib.metadata.version('cbridge-agent')
+    except Exception:
+        try:
+            with open(Path(__file__).parent / "setup.py", "r", encoding="utf-8") as f:
+                import re
+                setup_content = f.read()
+                match = re.search(r'version=["\']([^"\']+)["\']', setup_content)
+                if match:
+                    return f"{match.group(1)} (local)"
+        except Exception:
+            pass
+        return 'unknown'
+
 @click.group(help=t("cli_desc"))
+@click.version_option(version=get_version(), prog_name="ContextBridge")
 def cli():
     pass
 
@@ -1181,6 +1198,18 @@ def lang(lang):
     CONFIG["language"] = lang
     save_config(CONFIG)
     console.print(t("lang_success", lang=lang))
+
+@cli.command(help=t("update_desc"))
+def update():
+    import subprocess
+    import sys
+    console.print(t("update_start"))
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "cbridge-agent"])
+        console.print(t("update_success"))
+    except subprocess.CalledProcessError as e:
+        console.print(t("update_failed", error=e))
+        sys.exit(1)
 
 if __name__ == "__main__":
     cli()

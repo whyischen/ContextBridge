@@ -243,6 +243,12 @@ MESSAGES = {
         
         # repo_manager.py
         "repo_auto_sync_started": "[dim]⏱️ 自动拉取 GitHub 仓库的后台任务已启动[/dim]",
+        
+        # update command
+        "update_desc": "升级 ContextBridge 到最新版本",
+        "update_start": "[bold cyan]🚀 正在联网升级 ContextBridge...[/bold cyan]",
+        "update_success": "[bold green]✅ 升级成功！请重启相关服务以应用更新。[/bold green]",
+        "update_failed": "[bold red]❌ 升级失败:[/bold red] {error}",
     },
     "en": {
         # cbridge.py
@@ -485,6 +491,12 @@ MESSAGES = {
         
         # repo_manager.py
         "repo_auto_sync_started": "[dim]⏱️ Background task for auto-syncing GitHub repositories started[/dim]",
+        
+        # update command
+        "update_desc": "Update ContextBridge to the latest version",
+        "update_start": "[bold cyan]🚀 Updating ContextBridge from network...[/bold cyan]",
+        "update_success": "[bold green]✅ Update successful! Please restart related services to apply the update.[/bold green]",
+        "update_failed": "[bold red]❌ Update failed:[/bold red] {error}",
     }
 }
 
