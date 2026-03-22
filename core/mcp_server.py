@@ -19,13 +19,33 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="search_documents",
-            description="Search through local Office documents (Word, Excel) for relevant information.",
+            description="Search through local Office documents (Word, Excel, PDF) for relevant information. Supports advanced reranking with BM25, keyword matching, and position scoring for improved relevance.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
                         "description": "The search query to find relevant information in documents."
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "description": "Number of results to return (optional, uses config default if not specified).",
+                        "default": None
+                    },
+                    "min_similarity": {
+                        "type": "number",
+                        "description": "Minimum similarity threshold 0.0-1.0 (optional, uses config default if not specified).",
+                        "default": None
+                    },
+                    "enable_rerank": {
+                        "type": "boolean",
+                        "description": "Enable advanced reranking with BM25 + keywords + position scoring (default: true).",
+                        "default": True
+                    },
+                    "explain": {
+                        "type": "boolean",
+                        "description": "Include detailed score breakdown and matched keywords in results (default: false).",
+                        "default": False
                     }
                 },
                 "required": ["query"]
@@ -40,23 +60,58 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         if not query:
             return [TextContent(type="text", text="Error: query is required.")]
         
+        # Extract optional parameters
+        top_k = arguments.get("top_k")
+        min_similarity = arguments.get("min_similarity")
+        enable_rerank = arguments.get("enable_rerank", True)
+        explain = arguments.get("explain", False)
+        
         context_manager = get_context_manager()
-        results = context_manager.recursive_retrieve(query)
+        results = context_manager.recursive_retrieve(
+            query=query,
+            top_k=top_k,
+            min_similarity=min_similarity,
+            enable_rerank=enable_rerank,
+            explain=explain
+        )
         
         if not results:
             return [TextContent(type="text", text="No relevant information found.")]
             
         response_text = "Found the following relevant documents:\n\n"
-        for res in results:
+        for idx, res in enumerate(results, 1):
             source = res.get('uri', 'Unknown')
+            filename = res.get('filename', 'Unknown')
             abstract = res.get('abstract', '')
             excerpts = res.get('relevant_excerpts', [])
+            score = res.get('score', 0.0)
             
-            response_text += f"### Source: {source}\n"
+            response_text += f"### {idx}. {filename}\n"
+            response_text += f"**Source:** {source}\n"
+            response_text += f"**Relevance Score:** {score*100:.1f}%\n"
+            
+            # Add score breakdown if explain mode is enabled
+            if explain and 'score_breakdown' in res:
+                breakdown = res['score_breakdown']
+                response_text += f"**Score Breakdown:**\n"
+                response_text += f"  - Semantic: {breakdown['semantic']*100:.1f}%\n"
+                response_text += f"  - BM25: {breakdown['bm25']*100:.1f}%\n"
+                response_text += f"  - Keywords: {breakdown['keyword']*100:.1f}%\n"
+                response_text += f"  - Position: {breakdown['position']*100:.1f}%\n"
+                response_text += f"  - Title: {breakdown['title']*100:.1f}%\n"
+                
+                # Show matched keywords
+                if 'matched_keywords' in res:
+                    matched_kw = res['matched_keywords']
+                    kw_list = ", ".join([f"{k}({v})" for k, v in list(matched_kw.items())[:5]])
+                    response_text += f"**Matched Keywords:** {kw_list}\n"
+            
             response_text += f"**Abstract:** {abstract}\n"
             response_text += "**Relevant Excerpts:**\n"
-            for excerpt in excerpts:
+            for excerpt in excerpts[:3]:  # Limit to 3 excerpts per document
                 response_text += f"- {excerpt}\n"
+            if len(excerpts) > 3:
+                response_text += f"... and {len(excerpts) - 3} more excerpts\n"
             response_text += "\n"
             
         return [TextContent(type="text", text=response_text)]

@@ -28,6 +28,8 @@ class SearchRequest(BaseModel):
     query: str
     top_k: Optional[int] = None  # Use config default if not specified
     min_similarity: Optional[float] = None  # Use config default if not specified
+    enable_rerank: Optional[bool] = True  # Enable advanced reranking by default
+    explain: Optional[bool] = False  # Include detailed score breakdown
 
 class SearchResult(BaseModel):
     uri: str
@@ -51,25 +53,44 @@ class WatchStatusResponse(BaseModel):
 @app.post("/api/v1/search", response_model=SearchResponse)
 async def search_documents(request: SearchRequest):
     """
-    Semantic search across all indexed documents.
+    Semantic search across all indexed documents with advanced reranking.
+    
+    Parameters:
+    - query: Search query string
+    - top_k: Number of results to return (uses config default if not specified)
+    - min_similarity: Minimum similarity threshold (uses config default if not specified)
+    - enable_rerank: Enable BM25 + keyword + position reranking (default: True)
+    - explain: Include detailed score breakdown in metadata (default: False)
     """
     try:
         cm = get_context_manager()
         results = cm.recursive_retrieve(
-            request.query, 
+            query=request.query, 
             top_k=request.top_k,
-            min_similarity=request.min_similarity
+            min_similarity=request.min_similarity,
+            enable_rerank=request.enable_rerank,
+            explain=request.explain
         )
         
         formatted_results = []
         for res in results:
+            # Extract metadata if explain mode is enabled
+            metadata = {}
+            if request.explain:
+                if 'score_breakdown' in res:
+                    metadata['score_breakdown'] = res['score_breakdown']
+                if 'matched_keywords' in res:
+                    metadata['matched_keywords'] = res['matched_keywords']
+                if 'query_terms' in res:
+                    metadata['query_terms'] = res['query_terms']
+            
             formatted_results.append(SearchResult(
                 uri=res.get('uri', 'Unknown'),
                 filename=res.get('filename', 'Unknown'),
                 abstract=res.get('abstract', ''),
                 relevant_excerpts=res.get('relevant_excerpts', []),
                 score=res.get('score', 0.0),
-                metadata={} # Keeping for compatibility if needed
+                metadata=metadata
             ))
             
         return SearchResponse(results=formatted_results)

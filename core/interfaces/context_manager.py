@@ -19,9 +19,23 @@ class IContextManager(ABC):
         pass
 
     @abstractmethod
-    def recursive_retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def recursive_retrieve(
+        self, 
+        query: str, 
+        top_k: int = None,
+        min_similarity: float = None,
+        enable_rerank: bool = True,
+        explain: bool = False
+    ) -> List[Dict[str, Any]]:
         """
         执行高级检索策略（如 OpenViking 的目录递归检索）
+        
+        Args:
+            query: 搜索查询
+            top_k: 返回结果数量（None 使用配置默认值）
+            min_similarity: 最小相似度阈值（None 使用配置默认值）
+            enable_rerank: 是否启用高级重排序（BM25 + 关键词 + 位置）
+            explain: 是否返回详细的打分解释
         """
         pass
 

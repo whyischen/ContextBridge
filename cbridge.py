@@ -912,11 +912,10 @@ def stop():
 @click.argument('query')
 @click.option('--top-k', default=None, type=int, help='Number of results to return (uses config default if not specified)')
 @click.option('--threshold', default=None, type=float, help='Minimum similarity score threshold, 0.0-1.0 (uses config default if not specified)')
-@click.option('--rerank/--no-rerank', default=True, help='Enable/disable keyword-based reranking (default: enabled)')
-@click.option('--explain/--no-explain', default=True, help='Show/hide detailed explanation for each result (default: enabled)')
+@click.option('--rerank/--no-rerank', default=True, help='Enable/disable advanced reranking with BM25 + keywords + position (default: enabled)')
+@click.option('--explain/--no-explain', default=True, help='Show/hide detailed score breakdown for each result (default: enabled)')
 def search(query, top_k, threshold, rerank, explain):
     from core.config import get_search_config
-    from core.utils.search_optimizer import SearchOptimizer
     
     context_manager = initialize_system()
     
@@ -927,62 +926,23 @@ def search(query, top_k, threshold, rerank, explain):
     if threshold is None:
         threshold = search_config['min_similarity']
     
-    # Retrieve more results for better reranking
-    retrieve_count = top_k * 3 if rerank else top_k
-    results = context_manager.recursive_retrieve(query, top_k=retrieve_count, min_similarity=threshold)
+    # Call unified search with all parameters
+    results = context_manager.recursive_retrieve(
+        query=query,
+        top_k=top_k,
+        min_similarity=threshold,
+        enable_rerank=rerank,
+        explain=explain
+    )
     
     if not results:
         console.print(t("search_empty"))
         return
     
-    # Store original scores before any processing
-    for result in results:
-        result['original_score'] = result.get('score', 0.0)
-    
-    # Apply threshold filtering
-    if threshold > 0.0:
-        original_count = len(results)
-        results = [r for r in results if r.get('score', 0.0) >= threshold]
-        filtered_count = original_count - len(results)
-        if filtered_count > 0:
-            console.print(t("search_filtered", count=filtered_count, threshold=threshold))
-    
-    if not results:
-        console.print(t("search_empty_after_filter"))
-        return
-    
-    # Apply advanced reranking
-    if rerank and results:
-        # Use advanced optimizer with BM25, keyword matching, and position scoring
-        optimizer_config = search_config.get('optimizer', {})
-        results = SearchOptimizer.optimize_results(
-            query=query,
-            results=results,
-            config=optimizer_config,
-            explain=explain
-        )
+    # Display status message
+    if rerank:
         console.print("✨ Advanced reranking applied (BM25 + Keywords + Position)")
-    else:
-        # Fallback to simple keyword reranking for backward compatibility
-        results = _rerank_by_keywords(query, results)
-        console.print(t("search_reranked"))
     
-    # Apply threshold filtering again after reranking (scores have changed)
-    if threshold > 0.0:
-        pre_filter_count = len(results)
-        results = [r for r in results if r.get('score', 0.0) >= threshold]
-        post_filter_count = len(results)
-        if pre_filter_count > post_filter_count:
-            filtered = pre_filter_count - post_filter_count
-            console.print(f"🔍 Filtered {filtered} low-relevance results (threshold: {threshold*100:.0f}%)")
-    
-    # Limit to top_k after filtering
-    results = results[:top_k]
-    
-    if not results:
-        console.print(t("search_empty_after_filter"))
-        return
-        
     console.print(t("search_results_title", query=query))
     
     # Display results with or without explanation
@@ -990,56 +950,6 @@ def search(query, top_k, threshold, rerank, explain):
         _display_explainable_results(query, results)
     else:
         _display_simple_results(results)
-
-def _rerank_by_keywords(query: str, results: list) -> list:
-    """
-    Rerank search results based on keyword matching.
-    Boosts scores for results that contain query keywords.
-    Returns results with enhanced metadata for explainability.
-    """
-    import re
-    
-    # Extract keywords from query (simple tokenization)
-    keywords = set(re.findall(r'\w+', query.lower()))
-    
-    # Calculate keyword match scores
-    for result in results:
-        abstract = result.get('abstract', '').lower()
-        excerpts = " ".join(result.get('relevant_excerpts', [])).lower()
-        content = f"{abstract} {excerpts}"
-        uri = result.get('uri', '').lower()
-        
-        # Find which keywords matched and count occurrences
-        matched_keywords = {}
-        for kw in keywords:
-            count_content = content.count(kw)
-            count_uri = uri.count(kw)
-            total_count = count_content + count_uri
-            if total_count > 0:
-                matched_keywords[kw] = total_count
-        
-        # Calculate keyword match ratio
-        keyword_match_count = len(matched_keywords)
-        keyword_ratio = keyword_match_count / len(keywords) if keywords else 0
-        
-        # Store detailed matching information
-        result['matched_keywords'] = matched_keywords
-        result['keyword_match_count'] = keyword_match_count
-        result['total_keywords'] = len(keywords)
-        result['keyword_match_ratio'] = keyword_ratio
-        
-        # Boost original score based on keyword matches
-        original_score = result.get('original_score', result.get('score', 0.0))
-        # Weighted combination: 70% original score + 30% keyword match
-        boosted_score = original_score * 0.7 + keyword_ratio * 0.3
-        
-        # Store both scores for explanation
-        result['semantic_score'] = original_score
-        result['keyword_score'] = keyword_ratio
-        result['score'] = boosted_score
-    
-    # Sort by boosted score
-    return sorted(results, key=lambda x: x.get('score', 0.0), reverse=True)
 
 def _display_simple_results(results: list):
     """Display search results in simple format (original behavior)"""

@@ -12,6 +12,7 @@ console = Console(stderr=True)
 class OpenVikingManager(IContextManager):
     def __init__(self, search_runtime: ISearchRuntime, config: dict):
         self.search_runtime = search_runtime
+        self.config = config  # Store full config for optimizer access
         self.mount_path = config.get("openviking", {}).get("mount_path", "viking://contextbridge/")
         self.collection_name = config.get("qmd", {}).get("collection", "cb_documents")
         
@@ -108,7 +109,14 @@ class OpenVikingManager(IContextManager):
             logger.error(f"Error deleting context for {filename}: {e}", exc_info=True)
             return False
 
-    def recursive_retrieve(self, query: str, top_k: int = None, min_similarity: float = None) -> List[Dict[str, Any]]:
+    def recursive_retrieve(
+        self, 
+        query: str, 
+        top_k: int = None, 
+        min_similarity: float = None,
+        enable_rerank: bool = True,
+        explain: bool = False
+    ) -> List[Dict[str, Any]]:
         try:
             # Use configured defaults if not specified
             if top_k is None:
@@ -117,7 +125,7 @@ class OpenVikingManager(IContextManager):
                 min_similarity = self.default_min_similarity
             
             logger.debug(f"🔍 [OpenViking] Recursive Searching: {query}")
-            logger.debug(f"Parameters: top_k={top_k}, min_similarity={min_similarity}")
+            logger.debug(f"Parameters: top_k={top_k}, min_similarity={min_similarity}, rerank={enable_rerank}, explain={explain}")
             
             # Phase 1: 意图宽筛 (Search in L0 and L1)
             phase1_results = self.search_runtime.hybrid_search(
@@ -196,9 +204,37 @@ class OpenVikingManager(IContextManager):
                         
                 assembled_context[uri]["relevant_excerpts"].append(chunk_text)
             
-            # Sort by score and return top results
+            # Sort by score
             results = sorted(assembled_context.values(), key=lambda x: x["score"], reverse=True)
-            return results[:top_k * 2]  # Return more for potential reranking
+            results = results[:top_k * 2]  # Get more candidates for reranking
+            
+            # 4. Apply advanced reranking if enabled
+            if enable_rerank and results:
+                from core.utils.search_optimizer import SearchOptimizer
+                
+                # Get optimizer config from search config
+                search_config = self.config.get("search", {})
+                optimizer_config = search_config.get("optimizer", {})
+                
+                logger.debug(f"✨ Applying advanced reranking (BM25 + Keywords + Position)")
+                results = SearchOptimizer.optimize_results(
+                    query=query,
+                    results=results,
+                    config=optimizer_config,
+                    explain=explain
+                )
+            
+            # 5. Apply threshold filtering after reranking (scores may have changed)
+            if min_similarity > 0.0:
+                pre_filter_count = len(results)
+                results = [r for r in results if r.get('score', 0.0) >= min_similarity]
+                post_filter_count = len(results)
+                if pre_filter_count > post_filter_count:
+                    logger.debug(f"Filtered {pre_filter_count - post_filter_count} results after reranking (threshold: {min_similarity})")
+            
+            # 6. Return final top_k results
+            return results[:top_k]
+            
         except Exception as e:
             logger.error(f"Error retrieving context for query '{query}': {e}", exc_info=True)
             return []
