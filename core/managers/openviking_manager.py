@@ -201,8 +201,10 @@ class OpenVikingManager(IContextManager):
                     # 保持最大分数
                     if score > assembled_context[uri]["score"]:
                         assembled_context[uri]["score"] = score
-                        
-                assembled_context[uri]["relevant_excerpts"].append(chunk_text)
+                
+                # 避免重复的 L2 片段
+                if chunk_text not in assembled_context[uri]["relevant_excerpts"]:
+                    assembled_context[uri]["relevant_excerpts"].append(chunk_text)
             
             # Sort by score
             results = sorted(assembled_context.values(), key=lambda x: x["score"], reverse=True)
