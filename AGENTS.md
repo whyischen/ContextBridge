@@ -46,7 +46,7 @@ context-bridge/
 ├── cbridge.py                    # CLI 入口点
 ├── src                           # 前端页面
 ├── main.py                       # 主程序入口
-├── setup.py                      # 包配置
+├── pyproject.toml                # 包配置
 └── requirements.txt              # 依赖列表
 └── openclaw_skills               # 项目 Openclaw skills 文件夹
 └── docs                          # 官网文档中心

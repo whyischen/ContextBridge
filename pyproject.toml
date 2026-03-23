@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cbridge-agent"
+version = "0.1.17"
+description = "The All-in-One Local Memory Bridge for AI Agents"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "whyischen", email = "whyischen@gmail.com" }
+]
+
+dependencies = [
+    "markitdown[docx,xlsx,pptx,pdf]",
+    "watchdog",
+    "chromadb",
+    "mcp",
+    "pydantic",
+    "PyYAML",
+    "click",
+    "tqdm",
+    "rich",
+    "fastapi",
+    "uvicorn"
+]
+
+[project.scripts]
+cbridge = "cbridge:cli"
+
+[tool.setuptools]
+py-modules = ["cbridge"]
+
+[tool.setuptools.packages.find]
+where = ["."]

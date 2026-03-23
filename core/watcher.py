@@ -325,10 +325,10 @@ def index_all():
                 with open(parsed_path, "w", encoding="utf-8") as f:
                     f.write(content)
             context_manager.write_context(path.name, content, level="L2")
-            tqdm.write(f"✅ {path.name}")
+            # 使用 logger 而不是 tqdm.write，避免后台进程的编码问题
             logger.info(t("idx_success_log", name=path.name))
         else:
-            tqdm.write(f"❌ {path.name}  {error}")
+            # 使用 logger 而不是 tqdm.write，避免后台进程的编码问题
             logger.error(t("idx_failed_log", name=path.name, error=error))
     log_and_print(t("idx_complete"))
 
