@@ -49,9 +49,11 @@ If you want to manually trigger an indexing process for all your monitored folde
 cbridge index
 ```
 
+> **Note:** The `cbridge start` command automatically indexes existing documents on startup, so manual indexing is only needed if you want to rebuild the index without restarting the service.
+
 ### 3. Start Search Engine (`start`)
 
-Start the background engine to watch directories in real-time and provide search capabilities:
+Start the background engine to watch directories in real-time and provide search capabilities. This command will automatically index all existing documents in monitored folders before starting the watcher:
 
 ```bash
 cbridge start

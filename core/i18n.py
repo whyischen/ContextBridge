@@ -130,6 +130,16 @@ MESSAGES = {
         "mdl_hint": "[yellow]💡 提示: 这通常是因为网络连接 AWS S3 较慢。[/yellow]",
         "mdl_manual": "[yellow]请尝试开启代理，或者手动下载以下链接并解压到 {cache_dir} 目录下：[/yellow]",
         
+        # embeddings/gte_small_zh.py
+        "emb_gte_downloading": "[cyan]📥 正在下载 GTE-Small-Zh ONNX 模型 (30.5 MB)...[/cyan]",
+        "emb_gte_download_success": "[green]✅ GTE-Small-Zh 模型下载成功！[/green]",
+        "emb_gte_download_failed": "[red]❌ GTE-Small-Zh 模型下载失败: {error}[/red]",
+        "emb_gte_mirror_hint": "[dim]💡 提示: 已自动使用国内镜像 (hf-mirror.com)[/dim]",
+        
+        # qmd_runtime.py - embedding model migration
+        "qmd_emb_conflict": "[yellow]⚠️ 检测到嵌入模型变更，正在重建索引...[/yellow]",
+        "qmd_emb_rebuilt": "[green]✅ 索引重建完成，请运行 'cbridge index' 重新索引文档[/green]",
+        
         # openviking_manager.py
         "ov_init_embed": "[dim]⚙️ 初始化内嵌 OpenViking 管理器, 挂载路径: {mount_path}[/dim]",
         "ov_write_embed": "[cyan]📝 [OpenViking] 正在处理上下文:[/cyan] {uri}",
@@ -161,6 +171,8 @@ MESSAGES = {
         "watch_queue_size": "   - 任务队列大小：{size}",
         "watch_worker_threads": "   - Worker 线程数：{count}",
         "watch_workers_started": "[green]✅ 已启动 {count} 个 worker 线程[/green]",
+        "watch_indexing_existing": "[cyan]🔄 正在索引现有文档...[/cyan]",
+        "watch_index_failed": "[red]❌ 索引现有文档失败:[/red] {error}",
         "watch_skip_large_file": "[yellow]⚠️  跳过大文件：{name} ({size:.1f}MB > {max_size}MB)[/yellow]",
         "watch_queue_full": "[yellow]⚠️  任务队列已满，丢弃事件：{name}[/yellow]",
         "watch_resource_stats": "[cyan]📊 资源监控统计:[/cyan]",
@@ -382,6 +394,16 @@ MESSAGES = {
         "mdl_hint": "[yellow]💡 Hint: This is usually due to slow network connection to AWS S3.[/yellow]",
         "mdl_manual": "[yellow]Please try using a proxy, or manually download the following link and extract it to {cache_dir}:[/yellow]",
         
+        # embeddings/gte_small_zh.py
+        "emb_gte_downloading": "[cyan]📥 Downloading GTE-Small-Zh ONNX model (30.5 MB)...[/cyan]",
+        "emb_gte_download_success": "[green]✅ GTE-Small-Zh model downloaded successfully![/green]",
+        "emb_gte_download_failed": "[red]❌ GTE-Small-Zh model download failed: {error}[/red]",
+        "emb_gte_mirror_hint": "[dim]💡 Hint: Using China mirror (hf-mirror.com) automatically[/dim]",
+        
+        # qmd_runtime.py - embedding model migration
+        "qmd_emb_conflict": "[yellow]⚠️ Embedding model changed, rebuilding index...[/yellow]",
+        "qmd_emb_rebuilt": "[green]✅ Index rebuilt, please run 'cbridge index' to re-index documents[/green]",
+        
         # openviking_manager.py
         "ov_init_embed": "[dim]⚙️ Initializing embedded OpenViking manager, mount path: {mount_path}[/dim]",
         "ov_write_embed": "[cyan]📝 [OpenViking] Processing context:[/cyan] {uri}",
@@ -413,6 +435,8 @@ MESSAGES = {
         "watch_queue_size": "   - Task queue size: {size}",
         "watch_worker_threads": "   - Worker threads: {count}",
         "watch_workers_started": "[green]✅ Started {count} worker threads[/green]",
+        "watch_indexing_existing": "[cyan]🔄 Indexing existing documents...[/cyan]",
+        "watch_index_failed": "[red]❌ Failed to index existing documents:[/red] {error}",
         "watch_skip_large_file": "[yellow]⚠️  Skipping large file: {name} ({size:.1f}MB > {max_size}MB)[/yellow]",
         "watch_queue_full": "[yellow]⚠️  Task queue full, dropping event: {name}[/yellow]",
         "watch_resource_stats": "[cyan]📊 Resource monitoring stats:[/cyan]",

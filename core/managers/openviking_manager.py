@@ -244,7 +244,12 @@ class OpenVikingManager(IContextManager):
     def get_all_filenames(self) -> List[str]:
         try:
             metadatas = self.search_runtime.get_all_metadatas(self.collection_name)
-            return [meta.get("filename") for meta in metadatas if "filename" in meta]
+            # Use set to deduplicate filenames (each file has multiple chunks)
+            filenames = set()
+            for meta in metadatas:
+                if "filename" in meta:
+                    filenames.add(meta["filename"])
+            return list(filenames)
         except Exception as e:
             logger.error(f"Error getting all filenames: {e}", exc_info=True)
             return []

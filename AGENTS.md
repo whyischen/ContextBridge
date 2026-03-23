@@ -28,13 +28,16 @@ context-bridge/
 │   ├── interfaces/               # 接口定义
 │   │   ├── context_manager.py    # 上下文管理接口
 │   │   ├── parser.py             # 解析器接口
-│   │   └── search_runtime.py     # 搜索运行时接口
+│   │   ├── search_runtime.py     # 搜索运行时接口
+│   │   └── embedding_model.py    # 嵌入模型接口
 │   ├── managers/                 # 管理器实现
 │   │   └── openviking_manager.py # OpenViking 管理器
 │   ├── parsers/                  # 解析器实现
 │   │   ├── composite_parser.py   # 组合解析器
 │   │   ├── pdf_parser.py         # PDF 解析器（支持 MarkItDown 和 Docling 策略）
 │   │   └── markitdown_parser.py  # MarkItDown 通用解析器
+│   ├── embeddings/               # 嵌入模型实现
+│   │   └── gte_small_zh.py       # GTE-Small-Zh ONNX INT8 量化模型
 │   ├── runtimes/                 # 运行时实现
 │   │   └── qmd_runtime.py        # QMD 运行时
 │   └── utils/                    # 工具函数

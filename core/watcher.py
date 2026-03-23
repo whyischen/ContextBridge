@@ -383,6 +383,16 @@ def start_watching():
             logger.error(traceback.format_exc())
 
     schedule_new_dirs()
+    
+    # Index existing documents on startup
+    log_and_print(t("watch_indexing_existing"))
+    try:
+        index_all()
+    except Exception as e:
+        log_and_print(t("watch_index_failed", error=e), level="error")
+        import traceback
+        logger.error(traceback.format_exc())
+    
     observer.start()
     log_and_print(t("watch_started_success"))
     

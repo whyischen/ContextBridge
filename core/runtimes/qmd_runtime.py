@@ -1,22 +1,28 @@
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from rich.console import Console
 from core.interfaces.search_runtime import ISearchRuntime
+from core.interfaces.embedding_model import IEmbeddingModel
 from core.i18n import t
 
 logger = logging.getLogger(__name__)
 console = Console(stderr=True)
 
 class QMDRuntime(ISearchRuntime):
-    def __init__(self, config):
+    def __init__(self, config, embedding_model: Optional[IEmbeddingModel] = None):
         self.endpoint = config.get("qmd", {}).get("endpoint", "http://localhost:9791")
         self.collection_name = config.get("qmd", {}).get("collection", "cb_documents")
         self.config = config
+        self.embedding_model = embedding_model  # 注入自定义嵌入模型
         self.client = None
         self.collection = None
         self._initialized = False
         
         # 延迟初始化 ChromaDB，避免解释器关闭时的竞态条件
+        if embedding_model:
+            logger.info(f"⚙️ QMD runtime configured with custom embedding model: {embedding_model.__class__.__name__}")
+        else:
+            logger.info("⚙️ QMD runtime configured with ChromaDB default embedding model")
         logger.info("⚙️ QMD runtime configured for embedded mode (lazy initialization)")
     
     def _ensure_initialized(self):
@@ -26,8 +32,11 @@ class QMDRuntime(ISearchRuntime):
         
         try:
             logger.info("⚙️ Initializing embedded QMD engine (based on ChromaDB)...")
-            from core.utils.model_downloader import ensure_chroma_model
-            ensure_chroma_model()
+            
+            # 如果没有自定义嵌入模型，使用 ChromaDB 默认模型
+            if not self.embedding_model:
+                from core.utils.model_downloader import ensure_chroma_model
+                ensure_chroma_model()
             
             import chromadb
             from chromadb.config import Settings
@@ -49,8 +58,74 @@ class QMDRuntime(ISearchRuntime):
             )
             
             self.client = chromadb.Client(settings)
-            self.collection = self.client.get_or_create_collection(name=self.collection_name)
+            
+            # 如果提供了自定义嵌入模型，使用自定义的 embedding function
+            if self.embedding_model:
+                from chromadb.api.types import EmbeddingFunction as ChromaEmbeddingFunction
+                
+                class CustomEmbeddingFunction(ChromaEmbeddingFunction):
+                    """ChromaDB 自定义嵌入函数适配器"""
+                    def __init__(self, model: IEmbeddingModel):
+                        self.model = model
+                    
+                    def __call__(self, input: List[str]) -> List[List[float]]:
+                        return self.model.embed_batch(input)
+                
+                embedding_function = CustomEmbeddingFunction(self.embedding_model)
+                logger.info(f"✅ Using custom embedding model: {self.embedding_model.__class__.__name__}")
+                logger.info(f"   Vector dimension: {self.embedding_model.get_dimension()}")
+                
+                # 检查集合是否已存在
+                try:
+                    existing_collections = self.client.list_collections()
+                    collection_exists = any(col.name == self.collection_name for col in existing_collections)
+                    
+                    if collection_exists:
+                        # 集合已存在，尝试获取并检查嵌入函数
+                        try:
+                            self.collection = self.client.get_collection(
+                                name=self.collection_name,
+                                embedding_function=embedding_function
+                            )
+                            logger.info(f"✅ Loaded existing collection: {self.collection_name}")
+                        except ValueError as e:
+                            # 嵌入函数冲突，需要重建集合
+                            if "embedding function" in str(e).lower():
+                                logger.warning(f"⚠️ Embedding function conflict detected. Recreating collection...")
+                                console.print(t("qmd_emb_conflict"))
+                                
+                                # 删除旧集合
+                                self.client.delete_collection(name=self.collection_name)
+                                logger.info(f"🗑️ Deleted old collection: {self.collection_name}")
+                                
+                                # 创建新集合
+                                self.collection = self.client.create_collection(
+                                    name=self.collection_name,
+                                    embedding_function=embedding_function
+                                )
+                                logger.info(f"✅ Created new collection with custom embedding: {self.collection_name}")
+                                console.print(t("qmd_emb_rebuilt"))
+                            else:
+                                raise
+                    else:
+                        # 集合不存在，直接创建
+                        self.collection = self.client.create_collection(
+                            name=self.collection_name,
+                            embedding_function=embedding_function
+                        )
+                        logger.info(f"✅ Created new collection: {self.collection_name}")
+                        
+                except Exception as e:
+                    logger.error(f"Error handling collection: {e}", exc_info=True)
+                    raise
+            else:
+                # 使用 ChromaDB 默认嵌入模型
+                logger.info("✅ Using ChromaDB default embedding model (ONNXMiniLM_L6_V2)")
+                self.collection = self.client.get_or_create_collection(name=self.collection_name)
+            
             self._initialized = True
+            logger.info("✅ QMD runtime initialized successfully")
+            
         except Exception as e:
             console.print(f"[bold red]Failed to initialize embedded QMD: {e}[/bold red]")
             logger.error(f"QMD initialization error: {e}", exc_info=True)

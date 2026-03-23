@@ -14,6 +14,11 @@ def load_config():
             # Ensure language defaults to English if not specified
             if "language" not in config:
                 config["language"] = "en"
+            # Ensure embedding config has defaults
+            if "embedding" not in config:
+                config["embedding"] = {
+                    "model": "gte-small-zh"  # Default to GTE-Small-Zh
+                }
             # Ensure search config has defaults
             if "search" not in config:
                 config["search"] = {
@@ -46,6 +51,9 @@ def load_config():
     return {
         "mode": "embedded", 
         "language": "en",
+        "embedding": {
+            "model": "gte-small-zh"  # Default to GTE-Small-Zh
+        },
         "search": {
             "min_similarity": 0.3,  # Lower threshold for reranked results
             "default_top_k": 5,
@@ -137,6 +145,9 @@ def auto_configure(workspace_dir=None):
         "workspace_dir": workspace_dir or str(Path.home() / ".cbridge" / "workspace"),
         "watch_dirs": [],
         "pdf_parser_strategy": "markitdown",  # "markitdown" or "docling"
+        "embedding": {
+            "model": "gte-small-zh"  # "gte-small-zh" or "chromadb-default"
+        },
         "search": {
             "min_similarity": 0.3,  # Minimum similarity threshold (0.0-1.0) - optimized for reranked results
             "default_top_k": 5,     # Default number of results
