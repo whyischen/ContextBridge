@@ -1,104 +1,94 @@
 # ContextBridge User Manual 📚
 
-ContextBridge is a lightweight Knowledge Base plugin for AI Agents (like OpenClaw, Cursor, Claude Code). It gives your local AI assistants instant access to read and understand your local Office documents (Word, Excel, PDF, etc.) directly into high-fidelity Markdown context without cloud uploads.
+**ContextBridge** is your local AI knowledge base assistant. It enables Claude Code, Cursor, and other AI tools to read and understand Word, PDF, Excel, and other documents on your computer—no cloud uploads needed, all data processed locally with absolute privacy.
 
-## Installation
+---
+
+## Core Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔒 **Local Privacy** | 100% local execution, documents never leave your machine |
+| 📄 **Multi-format Support** | One-click parsing for PDF, Word, Excel, PPTX, Markdown |
+| 🧠 **Smart Parsing** | MarkItDown by default (lightweight), optional Docling for high precision |
+| ⚡ **Real-time Sync** | Auto-detect folder changes, instant index updates |
+| 🔋 **Ready to Use** | Built-in ChromaDB vector database, zero configuration |
+
+---
+
+## Quick Start (3 Minutes)
+
+### Step 1: Installation
 
 ```bash
 pip install cbridge-agent
 ```
 
-## First Time Initialization
-
-Run the initialization wizard to start the engine and set up your environment:
+### Step 2: Initialize and Start
 
 ```bash
 cbridge init
 ```
 
-During initialization, you will be prompted to:
-1. Choose the interface language (`en` or `zh`).
-2. Configure your workspace directory. The default is `~/ContextBridge_Workspace`.
+Follow the prompts to choose:
+1. **Interface Language**: `en` (English) or `zh` (Chinese)
+2. **Workspace Directory**: Default is `~/ContextBridge_Workspace`
+3. **Start Service**: Default is "Yes"—starts background monitoring immediately
 
-## Commands Guide
+After initialization, the service is already running in the background.
 
-### 1. Monitor Folders (`watch`)
-
-ContextBridge watches specific folders for any changes to your files to automatically build and update its vector index.
-
-- **Add a folder to monitor:**
-  ```bash
-  cbridge watch add /path/to/your/folder
-  ```
-
-- **List monitored folders:**
-  ```bash
-  cbridge watch list
-  ```
-
-- **Stop monitoring a folder:**
-  ```bash
-  cbridge watch remove /path/to/your/folder
-  ```
-
-### 2. Manual Indexing (`index`)
-
-If you want to manually trigger an indexing process for all your monitored folders:
+### Step 3: Add a Folder to Watch
 
 ```bash
-cbridge index
+cbridge watch add /Users/yourname/Documents/work-docs
 ```
 
-> **Note:** The `cbridge start` command automatically indexes existing documents on startup, so manual indexing is only needed if you want to rebuild the index without restarting the service.
+ContextBridge will automatically index all documents in this folder.
 
-### 3. Start Search Engine (`start`)
+---
 
-Start the background engine to watch directories in real-time and provide search capabilities. This command will automatically index all existing documents in monitored folders before starting the watcher:
+## Common Commands
+
+### Start/Stop Services
+
+If you didn't start the service during initialization, or need manual control:
 
 ```bash
-cbridge start
+cbridge start        # Start background monitoring (Watcher + Vector DB)
+cbridge serve        # Start API server (for external tool access)
+cbridge stop         # Stop all background services
 ```
 
-### 4. Search (`search`)
+> **Note**: `start` launches file monitoring and search engine; `serve` starts the REST API server. For daily use, `start` is sufficient—only use `serve` for API access.
 
-You can test natural language queries via the CLI without using your agent:
+### Manage Watched Directories
 
 ```bash
-cbridge search "Summarize Q3 revenue"
+# Add a directory to watch (supports multiple)
+cbridge watch add /path/to/new-folder
+
+# List watched directories
+cbridge watch list
+
+# Remove from watching
+cbridge watch remove /path/to/folder
 ```
 
-### 5. Start MCP Server (`mcp`)
+### 🔍 Test Search via CLI
 
-If you are using ContextBridge as a Model Context Protocol (MCP) server for Claude Code or Cursor:
+Test search without opening your AI tool:
 
 ```bash
-cbridge mcp
+# Natural language query
+cbridge search "What was the Q3 revenue figure"
+
+# Fuzzy matching also works
+cbridge search "Find the payment terms in that contract"
 ```
 
-### 6. Switch Language (`lang`)
+### 🌐 Connect to AI Tools (MCP)
 
-To change the interactive language displayed in the terminal:
-
-```bash
-cbridge lang en
-# OR
-cbridge lang zh
-```
-
-### 7. View Status and Config (`status` / `config`)
-
-- **Check current running status:**
-  ```bash
-  cbridge status
-  ```
-- **View raw config file content:**
-  ```bash
-  cbridge config
-  ```
-
-## Integrating with AI Agents (MCP)
-
-For clients fully supporting the Model Context Protocol (MCP) like **Cursor** or **Claude Code**, simply set the following configuration in your agent's MCP setup:
+For **Claude Code** or **Cursor** users, add this to your MCP settings:
 
 ```json
 {
@@ -111,4 +101,84 @@ For clients fully supporting the Model Context Protocol (MCP) like **Cursor** or
 }
 ```
 
-Once connected, your AI agents can autonomously query your local file contexts!
+After configuration, simply ask your AI:
+> "Summarize the key projects from the budget spreadsheet"
+
+The AI will automatically query ContextBridge to retrieve context from your local documents.
+
+---
+
+## Advanced Configuration
+
+### Switch Parsing Strategy
+
+ContextBridge supports two document parsing strategies:
+
+| Strategy | Characteristics | Best For |
+|----------|-----------------|----------|
+| **MarkItDown** (Default) | Lightweight and fast, low resource usage | Daily document processing |
+| **Docling** | High precision, preserves complex layouts | Academic papers, complex tables |
+
+Modify the parsing strategy in your config file:
+
+```yaml
+parser:
+  pdf_strategy: "docling"  # or "markitdown"
+```
+
+### Rebuild Index
+
+Force a full vector index rebuild when needed:
+
+```bash
+cbridge index
+```
+
+> **Tip**: `cbridge start` includes automatic indexing, so manual rebuild is rarely needed.
+
+### Switch Language
+
+```bash
+cbridge lang en    # Switch to English
+cbridge lang zh    # Switch to Chinese
+```
+
+### Check Status
+
+```bash
+cbridge status     # View service status
+cbridge config     # View configuration file
+```
+
+---
+
+## Supported File Formats
+
+| Format | Extensions | Notes |
+|--------|------------|-------|
+| PDF | `.pdf` | Supports both scanned (OCR) and text-based |
+| Word | `.docx`, `.doc` | Preserves heading hierarchy |
+| Excel | `.xlsx`, `.xls` | Parses tables as Markdown tables |
+| PowerPoint | `.pptx`, `.ppt` | Extracts content from each slide |
+| Markdown | `.md` | Native support |
+| Text Files | `.txt`, `.csv` | Direct reading |
+
+---
+
+## FAQ
+
+**Q: Are my documents sent to the cloud?**
+A: No. All parsing, indexing, and retrieval happens locally—no internet connection or API key required.
+
+**Q: How large can my documents be?**
+A: Depends on your local memory; generally handles 100+ page PDFs without issues.
+
+**Q: How quickly are new files indexed?**
+A: Files are automatically synced to the index within 1-2 seconds of saving.
+
+---
+
+## Need Help?
+
+- Project Home: https://github.com/whyischen/context-bridge
+- Report Issues: Submit a GitHub Issue

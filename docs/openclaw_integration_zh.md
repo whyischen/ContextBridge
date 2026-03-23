@@ -7,7 +7,7 @@
 
 ## 📦 安装 Skill
 
-ContextBridge 的原生技能已发布至[ClawHub.ai](https://clawhub.ai/)。我们提供两种安装方式：
+ContextBridge 的原生技能已发布至[clawhub.ai](https://clawhub.ai/)。我们提供两种安装方式：
 
 ### ✨ 方式一：通过对话安装（最简单）
 

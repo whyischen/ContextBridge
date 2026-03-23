@@ -1,104 +1,94 @@
 # ContextBridge 使用手册 📚
 
-ContextBridge 是一款专为 AI 智能体（如 OpenClaw、Cursor、Claude Code）设计的极速知识库外挂。它能让你的 AI 助手直接读取、理解本地的 Word、Excel、PDF 等文件，并提供高保真的 Markdown 上下文，无需上传至云端，隐私绝对安全。
+**ContextBridge** 是你的本地 AI 知识库助手。它让 Claude Code、Cursor 等 AI 工具直接读懂你电脑上的 Word、PDF、Excel 等文档——无需上传云端，所有数据本地处理，隐私零泄露。
 
-## 安装
+---
+
+## 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| 🔒 **本地隐私** | 100% 本地运行，文档不上云，数据不出境 |
+| 📄 **多格式支持** | PDF、Word、Excel、PPTX、Markdown 一键解析 |
+| 🧠 **智能解析** | 默认 MarkItDown 轻量解析，可选 Docling 高精度模式 |
+| ⚡ **实时同步** | 文件夹变动自动感知，索引即时更新 |
+| 🔋 **开箱即用** | 内置 ChromaDB 向量数据库，零配置上手 |
+
+---
+
+## 快速开始（3 分钟上手）
+
+### 第一步：安装
 
 ```bash
 pip install cbridge-agent
 ```
 
-## 首次初始化
-
-您可以运行引导式命令启动引擎与环境配置：
+### 第二步：初始化并启动
 
 ```bash
 cbridge init
 ```
 
-初始化过程中，你需要指定：
-1. 终端显示语言（`en` 或 `zh`）。
-2. 工作区目录（默认为 `~/ContextBridge_Workspace`）。
+按提示选择：
+1. **界面语言**：`zh`（中文）或 `en`（英文）
+2. **工作区目录**：默认 `~/ContextBridge_Workspace`
+3. **是否启动服务**：默认「是」，直接启动后台监控
 
-## 核心使用指南
+初始化完成后，服务已在后台运行。
 
-### 1. 文件夹监控 (`watch`)
-
-ContextBridge 支持智能目录监控功能，能自动感知所绑定文件夹内文档的变化，并自动生成、同步向量索引。
-
-- **添加监控目录：**
-  ```bash
-  cbridge watch add /你的目录绝对路径
-  ```
-
-- **查看正在监控的目录列表：**
-  ```bash
-  cbridge watch list
-  ```
-
-- **取消对某目录的监控：**
-  ```bash
-  cbridge watch remove /你的目录绝对路径
-  ```
-
-### 2. 手动构建索引 (`index`)
-
-希望对手动修改过的大量文档进行一次性批量构建，可以运行：
+### 第三步：添加监控文件夹
 
 ```bash
-cbridge index
+cbridge watch add /Users/你的用户名/Documents/工作文档
 ```
 
-> **注意：** `cbridge start` 命令会在启动时自动索引现有文档，因此手动索引仅在需要重建索引而不重启服务时使用。
+添加后 ContextBridge 会自动索引该文件夹中的所有文档。
 
-### 3. 启动检索引擎 (`start`)
+---
 
-启动后台监控程序与核心搜索服务引擎。此命令会在启动监控前自动索引所有监控目录中的现有文档：
+## 常用命令
+
+### 启动/停止服务
+
+如初始化时未启动服务，或需要手动控制：
 
 ```bash
-cbridge start
+cbridge start        # 启动后台监控服务（Watcher + 向量数据库）
+cbridge serve        # 启动 API 服务（供外部工具调用）
+cbridge stop         # 停止所有后台服务
 ```
 
-### 4. 万能检索与测试 (`search`)
+> **说明**：`start` 启动文件监控和搜索引擎；`serve` 启动 REST API 服务。日常使用只需 `start`，API 访问才需要 `serve`。
 
-你可以在不使用 AI 的情况下，在命令行测试本地知识库：
+### 管理监控目录
 
 ```bash
-cbridge search "帮我找一下最近那个表格里的项目预算是多少"
+# 添加监控目录（支持多个）
+cbridge watch add /path/to/新文件夹
+
+# 查看已监控目录
+cbridge watch list
+
+# 移除监控
+cbridge watch remove /path/to/文件夹
 ```
 
-### 5. 启动 MCP 服务 (`mcp`)
+### 🔍 命令行搜索测试
 
-如果您通过 Claude Code / Cursor 等客户端接入，需要直接开启 MCP 协议的服务端功能：
+不用打开 AI 工具，直接在终端测试搜索效果：
 
 ```bash
-cbridge mcp
+# 自然语言查询
+cbridge search "Q3 季度销售数据是多少"
+
+# 模糊匹配也能找到
+cbridge search "帮我找那份合同里的付款条款"
 ```
 
-### 6. 一键切换语言 (`lang`)
+### 🌐 接入 AI 工具（MCP）
 
-一键在命令行中英语言间进行无缝切换：
-
-```bash
-cbridge lang zh
-# 或者
-cbridge lang en
-```
-
-### 7. 查看运行状态与配置 (`status` / `config`)
-
-- **查看当前程序详细运行状态：**
-  ```bash
-  cbridge status
-  ```
-- **展示配置文件的原始内容：**
-  ```bash
-  cbridge config
-  ```
-
-## 🔌 接入你的 AI 智能体 (MCP 协议)
-
-对于支持 MCP (Model Context Protocol) 协议的本地 AI 工具（如 **Claude Code** 或 **Cursor**），将以下配置加入智能体配置文件即可：
+**Claude Code** 或 **Cursor** 用户，添加以下配置到 MCP 设置：
 
 ```json
 {
@@ -111,4 +101,85 @@ cbridge lang en
 }
 ```
 
-绑定成功后，当你的 AI 需要搜索参考特定的文档上下文时，就会自动自主向 ContextBridge 提问检索！
+配置完成后，直接对 AI 说：
+> "帮我总结一下预算表里的重点项目"
+
+AI 会自动调用 ContextBridge 检索你的本地文档。
+
+---
+
+## 进阶配置
+
+### 切换解析策略
+
+ContextBridge 支持两种文档解析策略：
+
+| 策略 | 特点 | 适用场景 |
+|------|------|----------|
+| **MarkItDown**（默认） | 轻量快速，资源占用低 | 日常文档处理 |
+| **Docling** | 高精度，保留复杂排版 | 学术论文、复杂表格 |
+
+在配置文件中修改解析策略：
+
+```yaml
+parser:
+  pdf_strategy: "docling"  # 或 "markitdown"
+```
+
+### 重建索引
+
+当需要强制重建向量索引时：
+
+```bash
+cbridge index
+```
+
+> 提示：`cbridge start` 已包含自动索引，通常无需手动执行。
+
+### 切换语言
+
+```bash
+cbridge lang en    # 切换英文
+cbridge lang zh    # 切换中文
+```
+
+### 查看运行状态
+
+```bash
+cbridge status     # 查看服务状态
+cbridge config     # 查看配置文件
+```
+
+---
+
+## 支持格式一览
+
+| 格式 | 扩展名 | 说明 |
+|------|--------|------|
+| PDF | `.pdf` | 支持扫描版（OCR）和文字版 |
+| Word | `.docx`, `.doc` | 保留标题层级结构 |
+| Excel | `.xlsx`, `.xls` | 解析表格数据为 Markdown 表格 |
+| PPT | `.pptx`, `.ppt` | 提取每页内容 |
+| Markdown | `.md` | 原生支持 |
+| 文本文件 | `.txt`, `.csv` | 直接读取 |
+
+---
+
+## 常见问题
+
+**Q: 文档数据会发送到云端吗？**
+A: 不会。所有解析、索引、检索都在本地完成，无需联网，无需 API Key。
+
+**Q: 支持多大体积的文档？**
+A: 取决于本地内存，一般支持百页级 PDF 无压力。
+
+**Q: 新增文件多久能被检索到？**
+A: 文件保存后 1-2 秒内自动同步到索引。
+
+---
+
+## 需要帮助？
+
+- 项目主页：https://github.com/whyischen/context-bridge
+- 问题反馈：提交 GitHub Issue
+

@@ -1,99 +1,83 @@
 [**🇨🇳 中文**](README_zh-CN.md) | [**🇬🇧 English**](README.md)
 
-# 🧠 ContextBridge (cbridge-agent)
+# ContextBridge (cbridge-agent)
 
-> **The All-in-One Local Memory Bridge for AI Agents.**  
-> Instantly feed real-world documents (PDFs, Office files, Markdown) to your local AI Agents (like OpenClaw, Claude Desktop, Cursor). Batteries included, zero configuration required.
+> **Connect AI Agentsto your Local Documents**
+>
+> Local knowledge base for OpenClaw, Cursor and AI assistants. Read your documents instantly—Word, Excel, PDF. No uploads. Privacy first.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/cbridge-agent.svg)](https://badge.fury.io/py/cbridge-agent)
 
-## 💡 Why ContextBridge?
+## OpenClaw Skill
 
-Most local AI Agents are great at reading code, but they are completely blind to the real-world business data hidden in your `.pdf`, `.docx`, and `.xlsx` files.
+Native skills for ContextBridge [local-context-bridge](https://clawhub.ai/whyischen/local-context-bridge)  are available on [clawhub.ai](https://clawhub.ai/).
 
-In the past, building a document retrieval system for your local Agent meant entering "configuration hell": *Install Node -> Install a Vector DB -> Configure environment variables -> Write parsing scripts -> Connect them all together...*
+- [`openclaw_skills/local-context-bridge`](openclaw_skills/local-context-bridge/) - For English language environments
+- [`openclaw_skills/local-context-bridge-cn`](openclaw_skills/local-context-bridge-cn/) - For Chinese language environments
 
-**ContextBridge ends all of this.** 
-We packaged high-fidelity parsers (`MarkItDown`, `Docling`) and a blazing-fast embedded vector database (`ChromaDB`) into a single, standalone tool. No external dependencies, no complex setup. **Just `pip install`, and your Agent instantly gets a memory.**
+Once installed, OpenClaw will automatically detect ContextBridge — no additional configuration needed to search your local documents.
 
----
+## Quick Start
 
-## ✨ Core Features
-
-- 🔋 **Batteries Included**: Built-in embedded `ChromaDB` vector database. No need to manually install environments or worry about vector index initialization. We handle it all under the hood.
-- 👁️ **Zero-Touch Sync**: Just drop a file into your watched folder. ContextBridge uses a debounced `Watchdog` to monitor changes, automatically parses them in an asynchronous background queue, and instantly rebuilds the local vector index without blocking your workflow.
-- 🧹 **Ghost Data Cleanup**: Automatically detects and cleans up "ghost data" (files deleted while the bridge was offline) during full indexing, ensuring your AI's memory is always perfectly synchronized with your local disk.
-- 📄 **Multi-Format Parsing**: Flawlessly extracts text from PDFs (via `Docling`), Word, Excel, PPTX, and more (via `MarkItDown`).
-- 🔌 **MCP & API Ready**: Exposes a clean local API and natively supports the **Model Context Protocol (MCP)**. Seamlessly integrates with Claude Desktop, Cursor, and OpenClaw.
-- 🌐 **i18n Support**: Fully supports both English and Chinese interfaces (`cbridge lang en` / `cbridge lang zh`).
-- 🔒 **100% Local & Private**: Does not rely on any cloud LLM APIs for storage. Your financial reports and core business documents never leave your hard drive.
-
----
-
-## 🚀 Quick Start
-
-Forget about tedious vector database setups. Everything is handled for you.
-
-### 1. Installation
-
-**Important: Clean Up Old Versions**
-
-If you have previously installed ContextBridge, old versions in your user directory may override the new version, causing issues (such as i18n not working). Please clean up first:
-
-```bash
-# Remove old versions from user directory
-rm -f ~/Library/Python/*/lib/python/site-packages/cbridge.py
-rm -rf ~/Library/Python/*/lib/python/site-packages/cbridge_agent*
-```
-
-Then install from PyPI (requires Python 3.9+):
+### Installation
 
 ```bash
 pip install cbridge-agent
 ```
 
-*(On the first run, ContextBridge will automatically download and initialize the built-in embedding models in the background).*
+The vector model will be downloaded automatically on the first run.
 
-### 2. Initialize Workspace
+### Initialization
 
 ```bash
 cbridge init
 ```
-Follow the interactive prompts to set up your workspace (defaults to `~/ContextBridge_Workspace`).
 
-### 3. Add Folders to Watch
+Follow the interactive wizard to complete the configuration (the default workspace is at `~/.cbridge`).
 
-Tell ContextBridge which folders contain your documents:
+### Add a Document Directory
 
 ```bash
 cbridge watch add /path/to/your/documents
 ```
 
-### 4. Start the Bridge
+File changes in this directory will be automatically synced to the vector database.
+
+### Search Document Content
 
 ```bash
-cbridge start
-```
-**That's it!** The background watcher and API server are now running silently. Any files you add, modify, or delete in your watched folders will be instantly synced to the vector database.
-
-### 5. Manual Indexing & Cleanup (Optional)
-
-If you made changes while the bridge was offline, you can force a full sync and clean up ghost data:
-
-```bash
-cbridge index
+cbridge search ContextBridge
 ```
 
----
+## Core Feature: Intelligent Text Chunking
 
-## 🤖 Connect Your AI Agent (MCP)
+ContextBridge uses a three-tier progressive retrieval architecture to ensure AI can precisely locate document content:
 
-ContextBridge natively supports the **Model Context Protocol (MCP)**, making it the perfect plug-and-play memory module for modern AI Agents.
+### L0 Layer: Document Abstract
+Automatically extracts document title and first paragraph core content for quick relevance assessment.
 
-**For Claude Desktop / Cursor / OpenClaw:**
-Simply add the ContextBridge MCP server to your Agent's configuration file:
+### L1 Layer: Structural Outline
+Parses document heading hierarchy (H1-H3) to build a complete content navigation map.
+
+### L2 Layer: Semantic Chunking
+- Default chunk size: 800 characters
+- Smart overlap: 150 characters (maintains context continuity)
+- Paragraph-aware: Splits at natural paragraph boundaries to avoid semantic fragmentation
+- Markdown-friendly: Recognizes code blocks, lists, and other structures to preserve formatting integrity
+
+### Retrieval Process
+
+1. **Intent Filtering**: Quickly match relevant documents at L0/L1 layers
+2. **Fine-grained Retrieval**: Precisely search relevant fragments in L2 layer of matched documents
+3. **Context Assembly**: Return document abstract + relevant excerpts to provide complete context
+
+This design allows AI to quickly locate target documents while obtaining precise contextual information, avoiding the "can't see the forest for the trees" problem of traditional RAG systems.
+
+## Other AI Clients
+
+In addition to OpenClaw, ContextBridge also works with Claude Desktop, Cursor, and other MCP-compatible clients:
 
 ```json
 {
@@ -105,39 +89,38 @@ Simply add the ContextBridge MCP server to your Agent's configuration file:
   }
 }
 ```
-Once connected, whenever your AI Agent needs to recall information from your office documents, it will autonomously query ContextBridge for precise, semantic retrieval.
 
----
+## CLI Commands
 
-## 🛠️ CLI Command Reference
+| Command                        | Description                                                                                              |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `cbridge init`               | Interactive initialization (the service starts automatically; no need to run `cbridge start` manually) |
+| `cbridge watch add <dir>`    | Add a directory to watch                                                                                 |
+| `cbridge watch list`         | List watched directories                                                                                 |
+| `cbridge watch remove <dir>` | Remove a watched directory                                                                               |
+| `cbridge start`              | Start the watcher service                                                                                |
+| `cbridge serve`              | Start both the API and watcher services                                                                  |
+| `cbridge index`              | Rebuild the index from scratch                                                                           |
+| `cbridge search "query"`     | Test semantic search                                                                                     |
+| `cbridge status`             | Check running status                                                                                     |
+| `cbridge lang <zh\|en>`       | Switch language                                                                                          |
+| `cbridge logs -f`            | View logs                                                                                                |
 
-ContextBridge provides an elegant CLI for managing your knowledge base:
+## FAQ
 
-- `cbridge init`: Interactively initialize configuration.
-- `cbridge watch add <dir>`: Add a directory to monitor.
-- `cbridge watch list`: List all monitored directories.
-- `cbridge watch remove <dir>`: Stop monitoring a directory.
-- `cbridge index`: Run a full index and clean up ghost data.
-- `cbridge start`: Start the real-time watcher and API server.
-- `cbridge serve`: Start only the API server.
-- `cbridge search "your query"`: Test semantic search directly from the terminal.
-- `cbridge status`: View current configuration and running status.
-- `cbridge lang <en|zh>`: Switch display language.
+**Q: How do I switch the PDF parsing strategy?**
+A: Edit the configuration file at `~/.cbridge/config.yaml`, and set `parser.pdf.strategy` to `docling` (higher accuracy but slower) or `markitdown` (lightweight default).
 
----
+**Q: What file formats are supported?**
+A: PDF, DOCX, XLSX, PPTX, MD, TXT, and more. MarkItDown covers the vast majority of office document formats.
 
-## 🤝 Contributing
+**Q: Where is the indexed data stored?**
+A: All data is stored locally in the `~/.cbridge/` directory, including the vector database and configuration files.
 
-We welcome contributions of all kinds! If you are passionate about local AI, RAG technologies, and ultimate Developer Experience (DX), join us in building the strongest AI memory bridge.
+## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Issues and Pull Requests are welcome.
 
----
+## License
 
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE).
+[MIT License](LICENSE)

@@ -3,7 +3,6 @@ name: local-context-bridge
 description: "使用语义关键词搜索本地个人和内部文档(Word/Excel/PDF/Markdown)。当用户询问本地文件、私人数据或内部知识时使用此工具。它会返回高度相关的文本片段和文件路径。注意：始终使用提取的核心实体作为关键词，而不是完整句子。"
 metadata: { openclaw: { emoji: "🌉", requires: { bins: [pip] } } }
 ---
-
 # ContextBridge 知识库
 
 ## 📚 工作原理
@@ -19,6 +18,7 @@ ContextBridge 为 OpenClaw 提供对你本地文档（Word、Excel、PDF、Markd
 ## 🚀 下载安装
 
 cbridge 安装与初始化流程
+
 ```mermaid
 flowchart TD
     A([开始]) --> B{已安装 cbridge？\ncbridge --version}
@@ -39,26 +39,34 @@ flowchart TD
 ```
 
 ### 1. 下载
+
+> 🔓 **开源可信**：`cbridge-agent` 完全开源，代码托管于 [GitHub](https://github.com/whyischen/context-bridge)，可审计验证，本地运行无数据泄露风险。
+
 ```bash
 pip install cbridge-agent
 ```
 
 ### 2. 初始化配置
+
 ```bash
 cbridge init
 ```
+
 因为软件主要为 AI 工具调用，推荐用户全部使用默认配置
 
 ### 3. 添加文档
+
 ```bash
 cbridge watch add /path/to/your/documents
 cbridge watch list    # 查看已监听文件夹
 ```
 
 ### 4. 运行测试 demo
+
 ```bash
 cbridge search ContextBridge    # 搜索内置测试文档
 ```
+
 ---
 
 ## 💡 搜索最佳实践
@@ -72,12 +80,14 @@ cbridge search ContextBridge    # 搜索内置测试文档
 2. 用户明确提出查看本地文档时
 
 ### 关键词提取
+
 - 推荐：提取核心实体
   - `2024 marketing budget` ✅
 - 不推荐：使用完整句子
   - `What was the budget for 2024 marketing` ❌
 
 ### 迭代搜索
+
 1. 先用精准关键词
 2. 若无结果，扩大查询范围
 3. 尝试同义词或相关术语
@@ -112,6 +122,6 @@ cbridge search query       # 搜索文档
 
 ## 📚 资源链接
 
-- GitHub：[whyischencontext-bridge](httpsgithub.comwhyischencontext-bridge)
+- GitHub：[whyischen/context-bridge](https://github.com/whyischen/context-bridge)
 - 配置文件：`~.cbridgeconfig.yaml`
 - 工作区：`~.cbridgeworkspace`

@@ -7,7 +7,7 @@ With just a simple `SKILL.md` file, you can empower OpenClaw agents to instantly
 
 ## 📦 Installing the Skill
 
-ContextBridge's native skill is published on [ClawHub.ai](https://clawhub.ai/). We provide two installation methods:
+ContextBridge's native skill is published on [clawhub.ai](https://clawhub.ai/). We provide two installation methods:
 
 ### ✨ Method 1: Conversational Installation (Easiest)
 

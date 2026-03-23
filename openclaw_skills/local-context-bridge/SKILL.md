@@ -7,7 +7,6 @@ description: >
   Note: Always use extracted core entities as keywords, not full conversational sentences.
 metadata: { openclaw: { emoji: "🌉", requires: { bins: [pip] } } }
 ---
-
 # ContextBridge Knowledge Base
 
 ## 📚 How It Works
@@ -44,23 +43,30 @@ flowchart TD
 ```
 
 ### 1. Download
+
+> 🔓 **Open Source & Trustworthy**: `cbridge-agent` is fully open-source, hosted on [GitHub](https://github.com/whyischen/context-bridge) for audit and verification. Runs entirely locally with zero data leakage risk.
+
 ```bash
 pip install cbridge-agent
 ```
 
 ### 2. Initialization & Configuration
+
 ```bash
 cbridge init
 ```
+
 *Note: Because this software is primarily invoked by AI tools, it is highly recommended to use the default configuration for all prompts during initialization.*
 
 ### 3. Add Documents
+
 ```bash
 cbridge watch add /path/to/your/documents
 cbridge watch list    # View currently monitored directories
 ```
 
 ### 4. Run Test Demo
+
 ```bash
 cbridge search ContextBridge    # Search the built-in test document
 ```
@@ -78,12 +84,14 @@ cbridge search ContextBridge    # Search the built-in test document
 2. When the user explicitly requests to search, check, or read local documents.
 
 ### Keyword Extraction
+
 - **Recommended:** Extract core entities and noun phrases.
   - `2024 marketing budget` ✅
 - **Not Recommended:** Use full conversational sentences.
   - `What was the budget for 2024 marketing` ❌
 
 ### Iterative Search Strategy
+
 1. Start with highly precise keywords.
 2. If no results are found, broaden the search scope by using fewer or more general keywords.
 3. Try synonyms, related terminology, or alternative phrasing.
@@ -118,6 +126,6 @@ cbridge search <query>       # Search documents using keywords
 
 ## 📚 Resource Links
 
-- **GitHub:**[whyischen/context-bridge](https://github.com/whyischen/context-bridge)
+- **GitHub:** [whyischen/context-bridge](https://github.com/whyischen/context-bridge)
 - **Configuration File:** `~/.cbridge/config.yaml`
 - **Workspace:** `~/.cbridge/workspace`
