@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Terminal, FolderSync, Settings, Shield, Zap, BookOpen, FileText, Cog } from 'lucide-react';
+import { Plug, Sparkles, FolderSync, Shield, Zap, BookOpen, FileText, Cog } from 'lucide-react';
 
 export const APP_CONTENT = {
   en: {
@@ -34,9 +34,19 @@ export const APP_CONTENT = {
     },
     features: [
       {
-        icon: Settings,
-        title: "Interactive Setup",
-        desc: <>Run <code className="text-indigo-300">cbridge init</code> for a guided setup. Choose between embedded mode or connect to external instances instantly.</>
+        icon: Shield,
+        title: "100% Local Privacy",
+        desc: "100% local operation. All data stored on your hard drive. No cloud APIs, complete data sovereignty."
+      },
+      {
+        icon: Zap,
+        title: "Intelligent Text Chunking",
+        desc: <>Three-tier progressive retrieval:<br /><span className="text-xs opacity-70 leading-tight block my-1">L0: Abstract · L1: Outline · L2: Semantic Chunks</span>Quickly locates documents with precise context.</>
+      },
+      {
+        icon: Sparkles,
+        title: "Hybrid Search Optimization",
+        desc: "Combines semantic search, BM25, keyword matching, and more. Intelligently weighted ranking delivers more precise retrieval results."
       },
       {
         icon: FolderSync,
@@ -44,24 +54,14 @@ export const APP_CONTENT = {
         desc: <>Effortlessly track project directories with <code className="text-indigo-300">cbridge watch</code>. Add or remove context sources instantly without restarts.</>
       },
       {
-        icon: Shield,
-        title: "100% Local Privacy",
-        desc: "All data stays on your machine. No cloud APIs, no uploads, no tracking. Your documents never leave your hard drive—complete data sovereignty."
-      },
-      {
-        icon: Terminal,
-        title: "Visual Indexing",
-        desc: <>Run <code className="text-indigo-300">cbridge index</code> to batch process your documents with a beautiful, real-time progress bar powered by tqdm.</>
-      },
-      {
-        icon: Database,
-        title: "Batteries Included",
-        desc: "Comes with an embedded ChromaDB search runtime. No need to manually install external databases or initialize indexes."
+        icon: Plug,
+        title: "Native MCP Protocol",
+        desc: "Built-in Model Context Protocol support. One-click integration with Claude Desktop, Cursor, OpenClaw, and other mainstream AI tools."
       },
       {
         icon: FileText,
         title: "Multi-Format Support",
-        desc: "Seamlessly handles Word, Excel, PDF, and Markdown. ContextBridge automatically parses your diverse local documents into high-fidelity context for your agents."
+        desc: "Supports Word, Excel, PDF, and Markdown. Automatically parses documents into high-fidelity context for AI agents."
       }
     ],
     quickStart: "Quick Start",
@@ -106,9 +106,19 @@ export const APP_CONTENT = {
     },
     features: [
       {
-        icon: Settings,
-        title: "交互式配置",
-        desc: <>运行 <code className="text-indigo-300">cbridge init</code> 进行引导式设置。可选择内嵌模式或一键接入外部服务。</>
+        icon: Shield,
+        title: "隐私保护",
+        desc: "100% 本地运行，所有数据存储在本地硬盘。无需云端 API，完全掌控数据主权。"
+      },
+      {
+        icon: Zap,
+        title: "智能文本分块",
+        desc: <>三层递进式检索：<br /><span className="text-xs opacity-70 leading-tight block my-1">L0: 文档摘要 · L1: 结构大纲 · L2: 语义分块</span>快速定位文档并获取精准上下文。</>
+      },
+      {
+        icon: Sparkles,
+        title: "混合搜索优化",
+        desc: "结合语义搜索、BM25、关键词匹配等多种算法。智能加权排序，提供更精准的检索结果。"
       },
       {
         icon: FolderSync,
@@ -116,24 +126,14 @@ export const APP_CONTENT = {
         desc: <>使用 <code className="text-indigo-300">cbridge watch</code> 命令轻松追踪项目目录。无需重启，即可实时动态增减上下文来源。</>
       },
       {
-        icon: Shield,
-        title: "隐私保护",
-        desc: "所有数据完全保留在本地。无需云端 API，无需上传，无任何追踪。你的文档永远不会离开你的硬盘——数据主权完全掌握在你手中。"
-      },
-      {
-        icon: Terminal,
-        title: "可视化索引",
-        desc: <>运行 <code className="text-indigo-300">cbridge index</code> 批量处理文档，内置基于 tqdm 的美观实时进度条。</>
-      },
-      {
-        icon: Database,
-        title: "开箱即用",
-        desc: "内置 ChromaDB 检索运行时。无需手动安装外部数据库或初始化索引。"
+        icon: Plug,
+        title: "原生 MCP 协议",
+        desc: "内置 Model Context Protocol 支持。一键接入 Claude Desktop、Cursor、OpenClaw 等主流 AI 工具。"
       },
       {
         icon: FileText,
         title: "多格式支持",
-        desc: "完美支持 Word、Excel、PDF 及 Markdown。ContextBridge 会自动将多种格式的本地文档解析为高保真 Markdown，为智能体提供精准上下文。"
+        desc: "支持 Word、Excel、PDF 及 Markdown。自动解析文档为高保真上下文，供 AI 智能体使用。"
       }
     ],
     quickStart: "快速开始",
