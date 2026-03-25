@@ -20,6 +20,7 @@ ContextBridge 的原生 skill [local-context-bridge](https://clawhub.ai/whyische
 
 ```bash
 clawhub install local-context-bridge
+
 # 中文版本
 clawhub install local-context-bridge-cn
 ```
