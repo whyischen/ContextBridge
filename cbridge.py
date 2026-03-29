@@ -217,38 +217,115 @@ def stop():
 @cli.command(help=t("logs_desc"))
 @click.option('--follow', '-f', is_flag=True, help=t("logs_follow_help"))
 @click.option('--lines', '-n', default=50, help=t("logs_lines_help"))
-@click.argument('service', type=click.Choice(['watcher', 'serve']), default='watcher')
+@click.argument('service', type=click.Choice(['watcher', 'serve', 'main', 'all']), default='all')
 def logs(follow, lines, service):
     """View service logs"""
-    log_file = "cbridge-watcher.log" if service == 'watcher' else "cbridge-serve.log"
-    log_path = os.path.expanduser(f"~/.cbridge/logs/{log_file}")
+    log_dir = os.path.expanduser("~/.cbridge/logs")
     
-    if not os.path.exists(log_path):
-        console.print(t("logs_not_found", file=log_path))
+    # Determine which log files to use
+    if service == 'watcher':
+        log_files = ["cbridge-watcher.log"]
+    elif service == 'serve':
+        log_files = ["cbridge-serve.log"]
+    elif service == 'main':
+        log_files = ["cbridge.log"]
+    else:  # all
+        log_files = ["cbridge.log", "cbridge-watcher.log"]
+    
+    # Check if any log files exist
+    existing_log_files = []
+    for log_file in log_files:
+        log_path = os.path.join(log_dir, log_file)
+        if os.path.exists(log_path):
+            existing_log_files.append(log_path)
+    
+    if not existing_log_files:
+        # Try to show at least one log file if possible
+        if service != 'all':
+            console.print(t("logs_not_found", file=os.path.join(log_dir, log_files[0])))
+        else:
+            console.print(t("logs_not_found", file=log_dir))
         return
-
+    
     if follow:
-        console.print(t("logs_follow_mode", file=log_path))
-        console.print(t("logs_exit_hint"))
-        try:
-            import subprocess
-            # Platform-specific log following command
-            cmd = platform_compat.get_follow_logs_command(Path(log_path), lines)
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            for line in process.stdout:
-                print(line, end='')
-        except KeyboardInterrupt:
-            console.print(t("logs_stopped"))
-        except Exception as e:
-            console.print(t("logs_error", error=str(e)))
-    else:
-        try:
-            with open(log_path, 'r', encoding='utf-8') as f:
-                all_lines = f.readlines()
-                for line in all_lines[-lines:]:
+        if len(existing_log_files) == 1:
+            # Single file follow mode
+            log_path = existing_log_files[0]
+            console.print(t("logs_follow_mode", file=log_path))
+            console.print(t("logs_exit_hint"))
+            try:
+                import subprocess
+                # Platform-specific log following command
+                cmd = platform_compat.get_follow_logs_command(Path(log_path), lines)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                for line in process.stdout:
                     print(line, end='')
-        except Exception as e:
-            console.print(t("logs_error", error=str(e)))
+            except KeyboardInterrupt:
+                console.print(t("logs_stopped"))
+            except Exception as e:
+                console.print(t("logs_error", error=str(e)))
+        else:
+            # Multiple file follow mode - show last N lines and then follow the most recently modified
+            console.print("[bold]Following multiple log files (showing recent entries):[/bold]")
+            
+            # Show recent lines from all files
+            all_lines = []
+            for log_path in existing_log_files:
+                try:
+                    with open(log_path, 'r', encoding='utf-8') as f:
+                        file_lines = f.readlines()
+                        # Add filename prefix to each line
+                        for line in file_lines[-(lines//len(existing_log_files)):]:
+                            all_lines.append((os.path.getmtime(log_path), f"[{os.path.basename(log_path)}] {line}"))
+                except Exception:
+                    continue
+            
+            # Sort by timestamp and display
+            all_lines.sort(key=lambda x: x[0])
+            for _, line in all_lines[-lines:]:
+                print(line, end='')
+            
+            # Follow the most recently modified file
+            most_recent_file = max(existing_log_files, key=os.path.getmtime)
+            console.print(f"\n[bold]Now following: {most_recent_file}[/bold]")
+            console.print(t("logs_exit_hint"))
+            try:
+                import subprocess
+                cmd = platform_compat.get_follow_logs_command(Path(most_recent_file), lines)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                for line in process.stdout:
+                    print(f"[{os.path.basename(most_recent_file)}] {line}", end='')
+            except KeyboardInterrupt:
+                console.print(t("logs_stopped"))
+            except Exception as e:
+                console.print(t("logs_error", error=str(e)))
+    else:
+        # Non-follow mode - show recent lines from all files
+        if len(existing_log_files) == 1:
+            # Single file
+            log_path = existing_log_files[0]
+            try:
+                with open(log_path, 'r', encoding='utf-8') as f:
+                    all_lines = f.readlines()
+                    for line in all_lines[-lines:]:
+                        print(line, end='')
+            except Exception as e:
+                console.print(t("logs_error", error=str(e)))
+        else:
+            # Multiple files - show recent lines from each file
+            lines_per_file = lines // len(existing_log_files)
+            if lines_per_file == 0:
+                lines_per_file = 1
+                
+            for log_path in existing_log_files:
+                try:
+                    with open(log_path, 'r', encoding='utf-8') as f:
+                        file_lines = f.readlines()
+                        console.print(f"\n[bold]=== {os.path.basename(log_path)} ===[/bold]")
+                        for line in file_lines[-lines_per_file:]:
+                            print(line, end='')
+                except Exception as e:
+                    console.print(t("logs_error", error=str(e)))
 
 @cli.command(help=t("search_desc"))
 @click.argument('query')
