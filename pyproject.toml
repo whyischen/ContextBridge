@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cbridge-agent"
-version = "0.1.20"
+dynamic = ["version"]
 description = "Connect AI Agents to your Local Documents"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -30,7 +30,8 @@ dependencies = [
 cbridge = "cbridge:cli"
 
 [tool.setuptools]
-py-modules = ["cbridge"]
+packages = ["core", "core.embeddings", "core.interfaces", "core.managers", "core.parsers", "core.runtimes", "core.utils"]
+py-modules = ["cbridge", "__main__"]
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools.dynamic]
+version = {attr = "core.__version__.__version__"}

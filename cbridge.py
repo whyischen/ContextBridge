@@ -26,6 +26,7 @@ from core.utils.process import (
 )
 from core.utils.logger import setup_logger, get_logger
 from core.platform import platform_compat
+from core.__version__ import __version__
 
 # Initialize logger and console
 setup_logger()
@@ -33,6 +34,7 @@ logger = get_logger("cli")
 console = Console()
 
 @click.group(help=t("cli_desc"))
+@click.version_option(version=__version__, prog_name="cbridge")
 def cli():
     """ContextBridge CLI"""
     pass

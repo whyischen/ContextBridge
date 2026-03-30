@@ -11,6 +11,7 @@ coverage/
 *.egg-info/
 cbridge_agent.egg-info/
 
+.agent-cache
 .vscode
 .kiro
 .idea
