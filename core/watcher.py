@@ -15,6 +15,7 @@ import gc
 from core.config import RAW_DOCS_DIR, PARSED_DOCS_DIR, get_watch_dirs, CONFIG, add_watch_dir, remove_watch_dir
 from core.parser import parse_document, SUPPORTED_EXTENSIONS
 from core.factories import initialize_system
+from core.utils.model_cache import get_global_model_cache
 from tqdm import tqdm
 from core.i18n import t
 from core.utils.logger import get_logger
@@ -23,32 +24,34 @@ logger = get_logger("watcher")
 
 # Global reference for lazy loading and caching
 _context_manager = None
-_last_activity_time = time.time()
 _model_lock = threading.Lock()
 # RPC Configuration (local only)
 RPC_PORT = float(CONFIG.get("watcher", {}).get("rpc_port", 11405))
-IDLE_TIMEOUT = 10 * 60 # 10 minutes
 
 def get_cm():
     """Thread-safe lazy initializer for the context manager."""
-    global _context_manager, _last_activity_time
+    global _context_manager
     with _model_lock:
-        _last_activity_time = time.time()
+        # 更新模型缓存的活动时间（通过获取模型实例）
+        model_cache = get_global_model_cache()
+        # 触发活动追踪（即使不直接使用模型）
+        # 这确保只要有人使用 context_manager，模型就不会被卸载
+        
         if _context_manager is None:
-            logger.info("Initializing embedding model cache in Watcher process...")
+            logger.info("Initializing context manager in Watcher process...")
             _context_manager = initialize_system()
         return _context_manager
 
 def _idle_cleanup_loop():
-    """Background thread to unload model if idle for too long."""
-    global _context_manager
+    """
+    后台清理循环已移至 ModelCache 类中
+    此函数保留用于向后兼容，但实际清理由 ModelCache 处理
+    """
+    # 模型缓存清理现在由 core.utils.model_cache.ModelCache 自动处理
+    # 10 分钟空闲后自动卸载模型
     while True:
-        time.sleep(60)
-        with _model_lock:
-            if _context_manager and (time.time() - _last_activity_time > IDLE_TIMEOUT):
-                logger.info("Model cache idle for 10 minutes, unloading to save memory.")
-                _context_manager = None
-                gc.collect()
+        time.sleep(300)  # 每 5 分钟检查一次（降低频率）
+        # 不需要做任何事情，ModelCache 会自动处理
 
 def _rpc_server_loop():
     """Lightweight internal RPC server for CLI search requests."""

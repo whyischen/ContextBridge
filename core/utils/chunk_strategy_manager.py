@@ -447,7 +447,7 @@ class SemanticChunkStrategy(BaseChunkStrategy):
     
     def __init__(self, chunk_size: int = 800, chunk_overlap: int = 150, 
                  similarity_threshold: float = 0.5, use_percentile: bool = True,
-                 percentile_threshold: int = 80):
+                 percentile_threshold: int = 80, embedding_model=None):
         super().__init__("semantic", "1.0.0")
         self._validate_params(chunk_size, chunk_overlap, similarity_threshold, percentile_threshold)
         self.chunk_size = chunk_size
@@ -455,7 +455,7 @@ class SemanticChunkStrategy(BaseChunkStrategy):
         self.similarity_threshold = similarity_threshold
         self.use_percentile = use_percentile
         self.percentile_threshold = percentile_threshold
-        self._embedding_model = None
+        self._embedding_model = embedding_model  # 接受外部注入的模型
     
     @staticmethod
     def _validate_params(chunk_size: int, chunk_overlap: int, 
@@ -473,12 +473,23 @@ class SemanticChunkStrategy(BaseChunkStrategy):
             raise ValueError(f"percentile_threshold must be between 0 and 100, got {percentile_threshold}")
     
     def _get_embedding_model(self):
-        """延迟加载嵌入模型"""
+        """
+        延迟加载嵌入模型
+        
+        优先使用构造函数注入的模型，如果没有则使用全局模型缓存
+        """
         if self._embedding_model is None:
             try:
-                from core.embeddings.gte_small_zh import GTESmallZhONNX
-                self._embedding_model = GTESmallZhONNX()
-                logger.debug("Loaded GTE-Small-Zh embedding model for semantic chunking")
+                # 尝试从全局模型缓存获取（支持 10 分钟空闲卸载）
+                from core.utils.model_cache import get_global_model_cache
+                
+                def _load_model():
+                    from core.embeddings.gte_small_zh import GTESmallZhONNX
+                    return GTESmallZhONNX()
+                
+                model_cache = get_global_model_cache()
+                self._embedding_model = model_cache.get_model(_load_model)
+                logger.debug(f"Using embedding model from cache: {self._embedding_model.__class__.__name__}")
             except Exception as e:
                 logger.error(f"Failed to load embedding model: {e}")
                 raise RuntimeError(f"Cannot initialize semantic chunking without embedding model: {e}")
@@ -718,10 +729,11 @@ class SemanticChunkStrategy(BaseChunkStrategy):
 class ChunkStrategyManager(IChunkStrategyManager):
     """分块策略管理器实现"""
     
-    def __init__(self, default_strategy: str = "semantic"):
+    def __init__(self, default_strategy: str = "semantic", embedding_model=None):
         self._strategy_instances: Dict[str, IChunkStrategy] = {}  # 已实例化的策略
         self._strategy_classes: Dict[str, Type[IChunkStrategy]] = {}  # 策略类（延迟实例化）
         self._default_strategy = default_strategy
+        self._embedding_model = embedding_model  # 存储嵌入模型引用
         self._lock = threading.Lock()  # 实例级别的锁
         
         # 注册内置策略类
@@ -755,6 +767,11 @@ class ChunkStrategyManager(IChunkStrategyManager):
         # 如果策略类存在，创建新实例
         if strategy_name in self._strategy_classes:
             strategy_class = self._strategy_classes[strategy_name]
+            
+            # 为 SemanticChunkStrategy 注入嵌入模型
+            if strategy_name == "semantic" and "embedding_model" not in kwargs:
+                kwargs["embedding_model"] = self._embedding_model
+            
             instance = strategy_class(**kwargs)
             
             # 如果没有自定义参数，缓存实例
