@@ -2,7 +2,7 @@
 
 ## Overview
 
-ContextBridge now supports centralized search configuration, allowing you to set default similarity thresholds and result counts across all search interfaces (CLI, API, and MCP).
+ContextBridge now supports centralized search configuration, allowing you to set default similarity thresholds and result counts across all search interfaces (CLI and MCP).
 
 ## Configuration Location
 
@@ -72,26 +72,6 @@ cbridge search "your query" --threshold 0.7
 Override number of results:
 ```bash
 cbridge search "your query" --top-k 10
-```
-
-### API Search
-
-Use default settings:
-```bash
-curl -X POST http://localhost:8765/api/v1/search \
-  -H "Content-Type: application/json" \
-  -d '{"query": "your query"}'
-```
-
-Override settings:
-```bash
-curl -X POST http://localhost:8765/api/v1/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "your query",
-    "min_similarity": 0.6,
-    "top_k": 10
-  }'
 ```
 
 ### MCP Server

@@ -107,7 +107,6 @@ In addition to OpenClaw, ContextBridge also works with Claude Desktop, Cursor, a
 | `cbridge watch list`         | List watched directories                                                                                 |
 | `cbridge watch remove <dir>` | Remove a watched directory                                                                               |
 | `cbridge start`              | Start the watcher service                                                                                |
-| `cbridge serve`              | Start both the API and watcher services                                                                  |
 | `cbridge index`              | Rebuild the index from scratch                                                                           |
 | `cbridge search "query"`     | Test semantic search                                                                                     |
 | `cbridge status`             | Check running status                                                                                     |

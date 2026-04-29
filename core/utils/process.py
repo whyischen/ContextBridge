@@ -12,7 +12,6 @@ logger = get_logger("process")
 
 # Default PID file locations
 WATCHER_PID_FILE = Path(os.path.expanduser("~/.cbridge/watcher.pid"))
-SERVE_PID_FILE = Path(os.path.expanduser("~/.cbridge/serve.pid"))
 
 def is_process_running(pid: int) -> bool:
     """Check if a process with given PID is running."""

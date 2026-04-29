@@ -2,7 +2,7 @@
 
 ## 概述
 
-ContextBridge 现在支持集中式搜索配置，允许你在所有搜索接口（CLI、API 和 MCP）中设置默认的相似度阈值和结果数量。
+ContextBridge 现在支持集中式搜索配置，允许你在所有搜索接口（CLI 和 MCP）中设置默认的相似度阈值和结果数量。
 
 ## 配置位置
 
@@ -72,26 +72,6 @@ cbridge search "你的查询" --threshold 0.7
 覆盖结果数量：
 ```bash
 cbridge search "你的查询" --top-k 10
-```
-
-### API 搜索
-
-使用默认设置：
-```bash
-curl -X POST http://localhost:8765/api/v1/search \
-  -H "Content-Type: application/json" \
-  -d '{"query": "你的查询"}'
-```
-
-覆盖设置：
-```bash
-curl -X POST http://localhost:8765/api/v1/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "你的查询",
-    "min_similarity": 0.6,
-    "top_k": 10
-  }'
 ```
 
 ### MCP 服务器

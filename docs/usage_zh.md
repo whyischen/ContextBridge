@@ -40,7 +40,6 @@ cbridge watch add /{你的文档/文档目录}
 
 ```bash
 cbridge start        # 启动后台监控服务（Watcher + 向量数据库）
-cbridge serve        # 启动 API 服务（供外部工具调用）
 cbridge stop         # 停止所有后台服务
 ```
 

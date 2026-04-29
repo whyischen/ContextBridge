@@ -12,7 +12,6 @@ from rich.text import Text
 from rich.table import Table
 from rich.box import ROUNDED
 from rich.console import Group
-import uvicorn
 from pathlib import Path
 
 from core.factories import initialize_system
@@ -22,7 +21,7 @@ from core.mcp_server import start_mcp_server
 from core.i18n import t, set_language
 from core.utils.process import (
     start_background_process, stop_background_process, 
-    get_process_status, WATCHER_PID_FILE, SERVE_PID_FILE
+    get_process_status, WATCHER_PID_FILE
 )
 from core.utils.logger import setup_logger, get_logger
 from core.platform import platform_compat
@@ -62,19 +61,14 @@ def init():
             console.print(t("init_cancelled"))
             return
 
-    # Check if services are running and offer to stop them
+    # Check if watcher service is running and offer to stop it
     watcher_status = get_process_status(WATCHER_PID_FILE)
-    serve_status = get_process_status(SERVE_PID_FILE)
     
-    if watcher_status[0] == "running" or serve_status[0] == "running":
-        console.print("\n[yellow]⚠️  Detected running services.[/yellow]")
-        if click.confirm("Stop existing services before re-initializing?", default=True):
-            if watcher_status[0] == "running":
-                if stop_background_process(WATCHER_PID_FILE):
-                    console.print(t("init_stopped_watcher", pid=watcher_status[1]))
-            if serve_status[0] == "running":
-                if stop_background_process(SERVE_PID_FILE):
-                    console.print(t("init_stopped_serve", pid=serve_status[1]))
+    if watcher_status[0] == "running":
+        console.print("\n[yellow]⚠️  Detected running watcher service.[/yellow]")
+        if click.confirm("Stop existing watcher before re-initializing?", default=True):
+            if stop_background_process(WATCHER_PID_FILE):
+                console.print(t("init_stopped_watcher", pid=watcher_status[1]))
             console.print(t("init_services_stopped"))
 
     # Language selection
@@ -164,29 +158,10 @@ def start(foreground):
         else:
             console.print("[red]❌ Failed to start background service.[/red]")
 
-@cli.command(help=t("serve_desc"))
-@click.option('--host', default="0.0.0.0")
-@click.option('--port', default=11400, type=int)
-@click.option('--foreground', is_flag=True)
-def serve(host, port, foreground):
-    """Start API Server for Agent access"""
-    if foreground:
-        uvicorn.run("core.api_server:app", host=host, port=port, log_level="info")
-    else:
-        cmd = f'"{sys.executable}" "{os.path.abspath(__file__)}" serve --foreground --host {host} --port {port}'
-        pid = start_background_process(cmd, SERVE_PID_FILE, "cbridge-serve.log")
-        if pid:
-            console.print(t("serve_daemon_start", pid=pid))
-            console.print(t("serve_daemon_url", host=host, port=port))
-            console.print(t("serve_daemon_hint"))
-        else:
-            console.print("[red]❌ Failed to start background API server.[/red]")
-
 @cli.command(help=t("status_desc"))
 def status():
     """Check services status"""
     watcher_status, watcher_pid = get_process_status(WATCHER_PID_FILE)
-    serve_status, serve_pid = get_process_status(SERVE_PID_FILE)
     
     console.print(t("status_title"))
     console.print(t("status_lang", lang=CONFIG.get("language", "en")))
@@ -195,11 +170,6 @@ def status():
         console.print(t("watcher_status_running", pid=watcher_pid))
     else:
         console.print(t("watcher_status_not_running"))
-        
-    if serve_status == "running":
-        console.print(t("api_status_running", pid=serve_pid))
-    else:
-        console.print(t("api_status_not_running"))
 
 @cli.command(help="Stop all ContextBridge background services")
 def stop():
@@ -210,16 +180,11 @@ def stop():
     else:
         console.print("[dim]Watcher was not running.[/dim]")
         
-    serve_stopped = stop_background_process(SERVE_PID_FILE)
-    if serve_stopped:
-        console.print("[green]✅ API Server stopped.[/green]")
-    else:
-        console.print("[dim]API Server was not running.[/dim]")
 
 @cli.command(help=t("logs_desc"))
 @click.option('--follow', '-f', is_flag=True, help=t("logs_follow_help"))
 @click.option('--lines', '-n', default=50, help=t("logs_lines_help"))
-@click.argument('service', type=click.Choice(['watcher', 'serve', 'main', 'all']), default='all')
+@click.argument('service', type=click.Choice(['watcher', 'main', 'all']), default='all')
 def logs(follow, lines, service):
     """View service logs"""
     log_dir = os.path.expanduser("~/.cbridge/logs")
@@ -227,8 +192,6 @@ def logs(follow, lines, service):
     # Determine which log files to use
     if service == 'watcher':
         log_files = ["cbridge-watcher.log"]
-    elif service == 'serve':
-        log_files = ["cbridge-serve.log"]
     elif service == 'main':
         log_files = ["cbridge.log"]
     else:  # all
